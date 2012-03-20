@@ -1,0 +1,35 @@
+@{
+    ViewBag.Title = "Alcatraz - Don't let those logs goes away";
+}
+
+@section head {
+    <script src="http://localhost:8081/signalr/hubs" type="text/javascript"></script>    
+}
+
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>@ViewBag.Title.</h1>
+            </hgroup>
+            <p>
+                The new way on logs visualization.
+            </p>
+        </div>
+    </section>
+}
+<h3>
+    Logs
+</h3>
+<ul id="messages">
+</ul>
+<script type="text/javascript">
+    $(function () {        
+
+        $.connection.hub.start({ transport: 'negotiate' }, function () {
+            $.connection.hub.log.signal(function (data) {
+                $("<li/>").html(window.JSON.stringify(data)).appendTo($("#messages"));
+            });
+        });
+    });
+</script>
