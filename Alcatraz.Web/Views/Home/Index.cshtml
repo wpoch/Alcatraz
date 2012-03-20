@@ -24,12 +24,13 @@
 <ul id="messages">
 </ul>
 <script type="text/javascript">
-    $(function () {        
+    $(function () {
+        var logHub = $.connection.logHub;
 
-        $.connection.hub.start({ transport: 'negotiate' }, function () {
-            $.connection.hub.log.signal(function (data) {
-                $("<li/>").html(window.JSON.stringify(data)).appendTo($("#messages"));
-            });
-        });
+        logHub.received = function (data) {
+            $("#messages").prepend($("<li/>").html(data.Message));
+        };
+
+        $.connection.hub.start({ transport: 'negotiate' });
     });
 </script>

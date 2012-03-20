@@ -3,7 +3,7 @@ using SignalR.Hubs;
 
 namespace Alcatraz.Core.Hubs
 {
-    [HubName("log")]
+    [HubName("logHub")]
     public class LogHub : Hub
     {
         public void Ping()

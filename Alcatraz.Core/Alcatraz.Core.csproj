@@ -37,6 +37,9 @@
     <Reference Include="SignalR">
       <HintPath>..\libs\SignalR.dll</HintPath>
     </Reference>
+    <Reference Include="SignalR.Hosting.Self">
+      <HintPath>..\libs\SignalR.Hosting.Self.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -50,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Adapters\Log4NetTraceListener.cs" />
     <Compile Include="Connections\LogConnection.cs" />
+    <Compile Include="Helpers\TaskAsycHelper.cs" />
     <Compile Include="Hubs\JSProxyGenerator.cs" />
     <Compile Include="Hubs\LogHub.cs" />
     <Compile Include="Log\ILogMessageNotifiable.cs" />
@@ -59,6 +63,7 @@
     <Compile Include="Receivers\IReceiver.cs" />
     <Compile Include="Receivers\ReceiverUtils.cs" />
     <Compile Include="Receivers\UdpReceiver.cs" />
+    <Compile Include="Server\RemoteOriginServer.cs" />
     <Compile Include="Settings\UserSettings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

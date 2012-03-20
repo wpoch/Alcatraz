@@ -6,6 +6,7 @@ using Alcatraz.Core.Connections;
 using Alcatraz.Core.Hubs;
 using Alcatraz.Core.Log;
 using Alcatraz.Core.Receivers;
+using Alcatraz.Core.Server;
 using SignalR;
 using SignalR.Hosting.Self;
 using log4net;
@@ -21,7 +22,8 @@ namespace Alcatraz.Service
         private Timer _logMsgTimer;
 
         private readonly ILog _log = LogManager.GetLogger(typeof(LogServer));
-        private Server _server;
+        private RemoteOriginServer _server;
+        private dynamic _clients;
 
         public void Run()
         {
@@ -42,8 +44,8 @@ namespace Alcatraz.Service
             Debug.Listeners.Add(new Log4NetTraceListener());
             Debug.AutoFlush = true;
             string url = "http://localhost:8081/";
-            
-            _server = new Server(url);
+
+            _server = new RemoteOriginServer(url);
             _server.DependencyResolver.Register(typeof(IJavaScriptProxyGenerator),
                 () => new JsProxyGenerator(_server.DependencyResolver, url));
 
@@ -53,6 +55,9 @@ namespace Alcatraz.Service
             // Enable the hubs route (/signalr)
             _server.EnableHubs();
             _server.Start();
+
+            var connectionManager = _server.DependencyResolver.GetService(typeof(IConnectionManager)) as IConnectionManager;
+            _clients = connectionManager.GetClients<LogHub>();
 
             if (_log.IsDebugEnabled) _log.Debug("- END -");
         }
@@ -121,9 +126,7 @@ namespace Alcatraz.Service
 
             if (_log.IsInfoEnabled) _log.InfoFormat(sms);
 
-            var connectionManager = _server.DependencyResolver.GetService(typeof(IConnectionManager)) as IConnectionManager;
-            dynamic clients = connectionManager.GetClients<LogHub>();
-            clients.signal(sms);
+            _clients.received(logMsg);
         }
 
         private void OnLogMessageTimer(object sender)
