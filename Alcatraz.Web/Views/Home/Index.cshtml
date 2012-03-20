@@ -27,10 +27,18 @@
     $(function () {
         var logHub = $.connection.logHub;
 
-        logHub.received = function (data) {
-            $("#messages").prepend($("<li/>").html(data.Message));
-        };
+        function addMessage(msg) {
+            $("<li/>").html(msg.Message).prependTo("#messages").effect("highlight");
+        }
 
-        $.connection.hub.start({ transport: 'negotiate' });
+        logHub.received = addMessage;
+
+        $.connection.hub.start({ transport: 'negotiate' }, function () {
+            logHub.getLogs(function (data) {
+                for (var i = data.length - 1; i >= 0; i--) {
+                    addMessage(data[i]);
+                }
+            });
+        });
     });
 </script>

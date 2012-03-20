@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Alcatraz.Core.Server;
 using log4net.Config;
 
 namespace Alcatraz.Service
@@ -10,10 +11,13 @@ namespace Alcatraz.Service
         {
             XmlConfigurator.ConfigureAndWatch(new FileInfo("log4net.config"));
 
-            new LogServer().Run();
-
-            Console.WriteLine("Presione una tecla para salir.");
-            Console.ReadLine();
+            using(var server = new LogServer())
+            {
+                server.Run();
+                
+                Console.WriteLine("Presione una tecla para salir.");
+                Console.ReadLine();
+            };
         }
     }
 }

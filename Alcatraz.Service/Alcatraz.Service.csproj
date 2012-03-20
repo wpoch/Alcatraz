@@ -41,6 +41,18 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\libs\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Client.Embedded">
+      <HintPath>..\libs\Raven.Client.Embedded.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight">
+      <HintPath>..\libs\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Database">
+      <HintPath>..\libs\Raven.Database.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Storage.Esent">
+      <HintPath>..\libs\Raven.Storage.Esent.dll</HintPath>
+    </Reference>
     <Reference Include="SignalR">
       <HintPath>..\libs\SignalR.dll</HintPath>
     </Reference>
@@ -56,7 +68,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LogServer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -71,6 +82,11 @@
     <None Include="log4net.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Raven.Studio.xap">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

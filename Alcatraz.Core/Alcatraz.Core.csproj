@@ -34,6 +34,15 @@
     <Reference Include="log4net">
       <HintPath>..\libs\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Raven.Client.Embedded">
+      <HintPath>..\libs\Raven.Client.Embedded.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Client.Lightweight">
+      <HintPath>..\libs\Raven.Client.Lightweight.dll</HintPath>
+    </Reference>
+    <Reference Include="Raven.Database">
+      <HintPath>..\libs\Raven.Database.dll</HintPath>
+    </Reference>
     <Reference Include="SignalR">
       <HintPath>..\libs\SignalR.dll</HintPath>
     </Reference>
@@ -63,6 +72,7 @@
     <Compile Include="Receivers\IReceiver.cs" />
     <Compile Include="Receivers\ReceiverUtils.cs" />
     <Compile Include="Receivers\UdpReceiver.cs" />
+    <Compile Include="Server\LogServer.cs" />
     <Compile Include="Server\RemoteOriginServer.cs" />
     <Compile Include="Settings\UserSettings.cs" />
   </ItemGroup>

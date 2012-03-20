@@ -28,6 +28,8 @@ namespace Alcatraz.Core.Log
         public int RangeMax;
 
 
+        public LogLevelInfo() { }
+
         public LogLevelInfo(LogLevel level, Color color)
         {
             Level = level;
