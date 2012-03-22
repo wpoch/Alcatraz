@@ -61,11 +61,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\Log4NetTraceListener.cs" />
-    <Compile Include="Connections\LogConnection.cs" />
+    <Compile Include="Categories\LogCategorizer.cs" />
     <Compile Include="Helpers\TaskAsycHelper.cs" />
     <Compile Include="Hubs\JSProxyGenerator.cs" />
     <Compile Include="Hubs\LogHub.cs" />
-    <Compile Include="Log\ILogMessageNotifiable.cs" />
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Receivers\BaseReceiver.cs" />

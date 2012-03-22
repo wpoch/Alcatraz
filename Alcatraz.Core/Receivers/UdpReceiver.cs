@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Alcatraz.Core.Log;
+using log4net;
 
 namespace Alcatraz.Core.Receivers
 {
@@ -11,6 +12,8 @@ namespace Alcatraz.Core.Receivers
     [DisplayName("UDP (IP v4 and v6)")]
     public class UdpReceiver : BaseReceiver
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof (UdpReceiver));
+
         [NonSerialized]
         private Thread _worker;
         [NonSerialized]
@@ -100,6 +103,7 @@ namespace Alcatraz.Core.Receivers
             _worker = null;
         }
 
+        public override Action<LogMessage> OnLogMessageReceived { get; set; }
         #endregion
 
 
@@ -112,18 +116,19 @@ namespace Alcatraz.Core.Receivers
                     byte[] buffer = _udpClient.Receive(ref _remoteEndPoint);
                     string loggingEvent = System.Text.Encoding.UTF8.GetString(buffer);
 
-                    Console.WriteLine(loggingEvent);
+                    if(Log.IsDebugEnabled) Log.Debug(loggingEvent);
 
-                    if (Notifiable == null)
+                    if (OnLogMessageReceived == null)
                         continue;
 
-                    LogMessage logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "UdpLogger");
-                    logMsg.LoggerName = string.Format("{0}_{1}", _remoteEndPoint.Address.ToString().Replace(".", "-"), logMsg.LoggerName);
-                    Notifiable.Notify(logMsg);
+                    var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "UdpLogger");
+
+                    OnLogMessageReceived.BeginInvoke(logMsg, ar => (ar.AsyncState as Action<LogMessage>).EndInvoke(ar),
+                                                     OnLogMessageReceived);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    if(Log.IsFatalEnabled) Log.Fatal(ex);
                     return;
                 }
             }

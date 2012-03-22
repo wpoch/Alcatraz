@@ -8,11 +8,9 @@ namespace Alcatraz.Core.Receivers
     public abstract class BaseReceiver : MarshalByRefObject, IReceiver
     {
         [NonSerialized]
-        protected ILogMessageNotifiable Notifiable;
-
-        [NonSerialized]
         private string _displayName;
 
+        public abstract Action<LogMessage> OnLogMessageReceived { get; set; }
 
         #region IReceiver Members
 
@@ -27,16 +25,6 @@ namespace Alcatraz.Core.Receivers
 
         public abstract void Initialize();
         public abstract void Terminate();
-
-        public virtual void Attach(ILogMessageNotifiable notifiable)
-        {
-            Notifiable = notifiable;
-        }
-
-        public virtual void Detach()
-        {
-            Notifiable = null;
-        }
 
         #endregion
     }

@@ -175,30 +175,40 @@ namespace Alcatraz.Core.Log
         /// <summary>
         /// Logger Name.
         /// </summary>
-        public string LoggerName;
+        public string LoggerName { get; set; }
         /// <summary>
         /// Log Level.
         /// </summary>
-        public LogLevelInfo Level;
+        public LogLevelInfo Level { get; set; }
         /// <summary>
         /// Log Message.
         /// </summary>
-        public string Message;
+        public string Message { get; set; }
         /// <summary>
         /// Thread Name.
         /// </summary>
-        public string ThreadName;
+        public string ThreadName { get; set; }
         /// <summary>
         /// Time Stamp.
         /// </summary>
-        public DateTime TimeStamp;
+        public DateTime TimeStamp { get; set; }
         /// <summary>
         /// Properties collection.
         /// </summary>
-        public Dictionary<string, string> Properties = new Dictionary<string, string>();
+        public Dictionary<string, string> Properties { get; set; }
+        public List<string> Tags { get; set; }
+        public List<string> Categories { get; set; }
+
         /// <summary>
         /// An exception message to associate to this message.
         /// </summary>
-        public string ExceptionString;
+        public string ExceptionString { get; set; }
+
+        public LogMessage()
+        {
+            Properties = new Dictionary<string, string>();
+            Tags = new List<string>();
+            Categories = new List<string>();
+        }
     }
 }

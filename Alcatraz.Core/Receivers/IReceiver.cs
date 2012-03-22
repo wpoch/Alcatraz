@@ -1,4 +1,5 @@
-﻿using Alcatraz.Core.Log;
+﻿using System;
+using Alcatraz.Core.Log;
 
 namespace Alcatraz.Core.Receivers
 {
@@ -10,7 +11,6 @@ namespace Alcatraz.Core.Receivers
         void Initialize();
         void Terminate();
 
-        void Attach(ILogMessageNotifiable notifiable);
-        void Detach();
+        Action<LogMessage> OnLogMessageReceived { get; set; }
     }
 }
