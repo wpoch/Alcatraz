@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Xml;
+using Alcatraz.Core.Helpers;
 using Alcatraz.Core.Log;
 
 namespace Alcatraz.Core.Receivers
@@ -71,7 +72,7 @@ namespace Alcatraz.Core.Receivers
                                ThreadName = "NA",
                                Message = logEvent,
                                TimeStamp = DateTime.Now,
-                               Level = LogLevels.Instance[LogLevel.Info],
+                               Level = LogLevel.Info,
                                ExceptionString = e.Message
                            };
             }
@@ -102,7 +103,7 @@ namespace Alcatraz.Core.Receivers
                 throw new Exception("The Log Event is not a valid log4j Xml block.");
 
             logMsg.LoggerName = reader.GetAttribute("logger");
-            logMsg.Level = LogLevels.Instance[reader.GetAttribute("level")];
+            logMsg.Level = EnumExtensions.Parse<LogLevel>(reader.GetAttribute("level"));
             logMsg.ThreadName = reader.GetAttribute("thread");
 
             long timeStamp;

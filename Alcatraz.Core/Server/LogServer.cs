@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
-using Alcatraz.Core.Adapters;
 using Alcatraz.Core.Hubs;
 using Alcatraz.Core.Log;
 using Alcatraz.Core.Receivers;
+using Raven.Client;
 using Raven.Client.Embedded;
 using SignalR;
-using log4net;
 using SignalR.Hubs;
+using log4net;
 
 namespace Alcatraz.Core.Server
 {
     public class LogServer : IDisposable
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(LogServer));
-        private RemoteOriginServer _server;
-        private dynamic _clients;
         public static EmbeddableDocumentStore DocumentStore;
 
         #region Initialization
@@ -48,19 +45,18 @@ namespace Alcatraz.Core.Server
         {
             if (_log.IsDebugEnabled) _log.Debug("Init SignalR...");
 
-            Debug.Listeners.Add(new Log4NetTraceListener());
-            Debug.AutoFlush = true;
             const string url = "http://localhost:8081/";
 
             _server = new RemoteOriginServer(url);
-            _server.DependencyResolver.Register(typeof(IJavaScriptProxyGenerator),
+            _server.DependencyResolver.Register(typeof (IJavaScriptProxyGenerator),
                                                 () => new JsProxyGenerator(_server.DependencyResolver, url));
 
             // Enable the hubs route (/signalr)
             _server.EnableHubs();
             _server.Start();
 
-            var connectionManager = _server.DependencyResolver.GetService(typeof(IConnectionManager)) as IConnectionManager;
+            var connectionManager =
+                _server.DependencyResolver.GetService(typeof (IConnectionManager)) as IConnectionManager;
             _clients = connectionManager.GetClients<LogHub>();
 
             if (_log.IsDebugEnabled) _log.Debug("...SignalR initialized!");
@@ -70,10 +66,24 @@ namespace Alcatraz.Core.Server
         {
             if (_log.IsDebugEnabled) _log.Debug("Init UDP Receivers...");
 
-            var receiver = new UdpReceiver { Port = 44444, OnLogMessageReceived = AddLogMessage };
+            var receiver = new UdpReceiver {Port = 44444, OnLogMessageReceived = AddLogMessage};
             receiver.Initialize();
 
             if (_log.IsDebugEnabled) _log.Debug("... UDP Receivers initialized!");
+        }
+
+        #endregion
+
+        private readonly ILog _log = LogManager.GetLogger(typeof (LogServer));
+        private dynamic _clients;
+        private RemoteOriginServer _server;
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            if (DocumentStore != null) DocumentStore.Dispose();
+            if (_server != null) _server.Stop();
         }
 
         #endregion
@@ -83,7 +93,7 @@ namespace Alcatraz.Core.Server
             if (_log.IsDebugEnabled) _log.Debug(logMsg);
 
             //Store the log
-            using (var session = DocumentStore.OpenSession())
+            using (IDocumentSession session = DocumentStore.OpenSession())
             {
                 session.Store(logMsg);
                 session.SaveChanges();
@@ -91,12 +101,6 @@ namespace Alcatraz.Core.Server
 
             //Broadcast the log to the clients
             _clients.received(logMsg);
-        }
-
-        public void Dispose()
-        {
-            if (DocumentStore != null) DocumentStore.Dispose();
-            if (_server != null) _server.Stop();
         }
     }
 }

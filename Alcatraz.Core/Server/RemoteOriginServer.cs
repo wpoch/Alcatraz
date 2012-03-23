@@ -3,31 +3,26 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
+using Alcatraz.Core.Helpers;
 using SignalR;
 using SignalR.Hosting;
 using SignalR.Hosting.Self;
 using SignalR.Hosting.Self.Infrastructure;
 using SignalR.Hubs;
 using SignalR.Infrastructure;
-using Alcatraz.Core.Helpers;
 
 namespace Alcatraz.Core.Server
 {
     public class RemoteOriginServer
     {
-        private readonly string _url;
-        private readonly HttpListener _listener;
         private readonly Dictionary<string, Type> _connectionMapping = new Dictionary<string, Type>();
+        private readonly HttpListener _listener;
+        private readonly string _url;
         private bool _hubsEnabled;
-
-        public Action<HostContext> OnProcessRequest { get; set; }
-
-        public IDependencyResolver DependencyResolver { get; private set; }
 
         public RemoteOriginServer(string url)
             : this(url, new DefaultDependencyResolver())
         {
-
         }
 
         public RemoteOriginServer(string url, IDependencyResolver resolver)
@@ -37,6 +32,10 @@ namespace Alcatraz.Core.Server
             _listener.Prefixes.Add(url);
             DependencyResolver = resolver;
         }
+
+        public Action<HostContext> OnProcessRequest { get; set; }
+
+        public IDependencyResolver DependencyResolver { get; private set; }
 
         public void Start()
         {
@@ -54,7 +53,7 @@ namespace Alcatraz.Core.Server
         {
             if (!_connectionMapping.ContainsKey(path))
             {
-                _connectionMapping.Add(path, typeof(T));
+                _connectionMapping.Add(path, typeof (T));
             }
         }
 
@@ -79,34 +78,40 @@ namespace Alcatraz.Core.Server
         private void ReceiveLoop()
         {
             _listener.BeginGetContext(ar =>
-            {
-                HttpListenerContext context;
-                try
-                {
-                    context = _listener.EndGetContext(ar);
-                }
-                catch (Exception)
-                {
-                    return;
-                }
+                                          {
+                                              HttpListenerContext context;
+                                              try
+                                              {
+                                                  context = _listener.EndGetContext(ar);
+                                              }
+                                              catch (Exception)
+                                              {
+                                                  return;
+                                              }
 
-                ReceiveLoop();
+                                              ReceiveLoop();
 
-                // Process the request async
-                ProcessRequestAsync(context).ContinueWith(task =>
-                {
-                    if (task.IsFaulted)
-                    {
-                        Exception ex = task.Exception.GetBaseException();
-                        context.Response.ServerError(ex).Catch();
+                                              // Process the request async
+                                              ProcessRequestAsync(context).ContinueWith(task =>
+                                                                                            {
+                                                                                                if (task.IsFaulted)
+                                                                                                {
+                                                                                                    Exception ex =
+                                                                                                        task.Exception.
+                                                                                                            GetBaseException
+                                                                                                            ();
+                                                                                                    context.Response.
+                                                                                                        ServerError(ex).
+                                                                                                        Catch();
 
-                        Debug.WriteLine(ex.Message);
-                    }
+                                                                                                    Debug.WriteLine(
+                                                                                                        ex.Message);
+                                                                                                }
 
-                    context.Response.CloseSafe();
-                });
-
-            }, null);
+                                                                                                context.Response.
+                                                                                                    CloseSafe();
+                                                                                            });
+                                          }, null);
         }
 
         private Task ProcessRequestAsync(HttpListenerContext context)
@@ -126,7 +131,7 @@ namespace Alcatraz.Core.Server
                     context.Response.AddHeader("Access-Control-Allow-Origin", "*");
                     var response = new HttpListenerResponseWrapper(context.Response);
 
-                    var hostContext = new HostContext(request, response, context.User);                    
+                    var hostContext = new HostContext(request, response, context.User);
 
                     if (OnProcessRequest != null)
                     {
@@ -138,7 +143,7 @@ namespace Alcatraz.Core.Server
                     hostContext.Items["System.Net.HttpListenerContext"] = context;
 
                     // Initialize the connection
-                    connection.Initialize(DependencyResolver);                    
+                    connection.Initialize(DependencyResolver);
                     return connection.ProcessRequestAsync(hostContext);
                 }
 
@@ -170,7 +175,8 @@ namespace Alcatraz.Core.Server
 
         private string ResolvePath(Uri url)
         {
-            string baseUrl = url.GetComponents(UriComponents.Scheme | UriComponents.HostAndPort | UriComponents.Path, UriFormat.SafeUnescaped);
+            string baseUrl = url.GetComponents(UriComponents.Scheme | UriComponents.HostAndPort | UriComponents.Path,
+                                               UriFormat.SafeUnescaped);
 
             if (!baseUrl.StartsWith(_url, StringComparison.OrdinalIgnoreCase))
             {
@@ -184,6 +190,6 @@ namespace Alcatraz.Core.Server
             }
 
             return path;
-        }         
+        }
     }
 }
