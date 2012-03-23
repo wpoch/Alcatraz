@@ -1,4 +1,5 @@
 ﻿using System;
+using Alcatraz.Core.Adapters;
 using Alcatraz.Core.Hubs;
 using Alcatraz.Core.Log;
 using Alcatraz.Core.Receivers;
@@ -62,6 +63,7 @@ namespace Alcatraz.Core.Server
             _server.DependencyResolver.Register(typeof(IJavaScriptProxyGenerator),
                                                 () => new JsProxyGenerator(_server.DependencyResolver, _settings.BroadcastUrl));
             _server.DependencyResolver.Register(typeof(LogHub), () => new LogHub(_documentStore));
+            _server.DependencyResolver.Register(typeof(IJsonSerializer), () => new EnumJsonConvertAdapter());
 
             // Enable the hubs route (/signalr)
             _server.EnableHubs();
