@@ -23,7 +23,9 @@ namespace Alcatraz.Core.Hubs
             {
                 return session.Query<LogMessage>()
                     .Where(x => x.TimeStamp > DateTime.Now.AddDays(-1))
-                    .OrderByDescending(x => x.TimeStamp).ToArray();
+                    .OrderByDescending(x => x.TimeStamp)
+                    .Take(500)
+                    .ToArray();
             }
         }
     }
