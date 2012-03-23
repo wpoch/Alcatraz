@@ -13,10 +13,10 @@ namespace Alcatraz.Core.Server
     public class LogServer : IDisposable
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(LogServer));
-        public static EmbeddableDocumentStore DocumentStore;
-        private dynamic _clients;
-        private RemoteOriginServer _server;
         private readonly ApplicationSettings _settings;
+        private EmbeddableDocumentStore _documentStore;
+        private RemoteOriginServer _server;
+        private dynamic _clients;
 
         public LogServer(ApplicationSettings settings)
         {
@@ -25,26 +25,31 @@ namespace Alcatraz.Core.Server
 
         #region Initialization
 
-        public void Run()
+        public void Start()
         {
             if (_log.IsDebugEnabled) _log.Debug("Starting Alcatraz engines...");
-            InitReceivers();
-            InitBroadcaster();
             InitLogStore();
+            InitBroadcaster();
+            InitReceivers();
             if (_log.IsDebugEnabled) _log.Debug("... Alcatraz running!");
+        }
+
+        public void Stop()
+        {
+            this.Dispose();
         }
 
         private void InitLogStore()
         {
             if (_log.IsDebugEnabled) _log.Debug("Init RavenDB...");
 
-            DocumentStore = new EmbeddableDocumentStore
+            _documentStore = new EmbeddableDocumentStore
                                 {
                                     DataDirectory = "Data",
                                     UseEmbeddedHttpServer = true,
                                 };
-            DocumentStore.Configuration.Port = _settings.DatabasePort;
-            DocumentStore.Initialize();
+            _documentStore.Configuration.Port = _settings.DatabasePort;
+            _documentStore.Initialize();
 
             if (_log.IsDebugEnabled) _log.Debug("... RavenDB initialized!");
         }
@@ -56,6 +61,7 @@ namespace Alcatraz.Core.Server
             _server = new RemoteOriginServer(_settings.BroadcastUrl);
             _server.DependencyResolver.Register(typeof(IJavaScriptProxyGenerator),
                                                 () => new JsProxyGenerator(_server.DependencyResolver, _settings.BroadcastUrl));
+            _server.DependencyResolver.Register(typeof(LogHub), () => new LogHub(_documentStore));
 
             // Enable the hubs route (/signalr)
             _server.EnableHubs();
@@ -63,6 +69,8 @@ namespace Alcatraz.Core.Server
 
             var connectionManager =
                 _server.DependencyResolver.GetService(typeof(IConnectionManager)) as IConnectionManager;
+            if(connectionManager == null)
+                throw new NullReferenceException("Can't ");
             _clients = connectionManager.GetClients<LogHub>();
 
             if (_log.IsDebugEnabled) _log.Debug("...SignalR initialized!");
@@ -81,24 +89,14 @@ namespace Alcatraz.Core.Server
             if (_log.IsDebugEnabled) _log.Debug("... UDP Receivers initialized!");
         }
 
-        #endregion
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            if (DocumentStore != null) DocumentStore.Dispose();
-            if (_server != null) _server.Stop();
-        }
-
-        #endregion
+        #endregion        
 
         private void AddLogMessage(LogMessage logMsg)
         {
             if (_log.IsDebugEnabled) _log.Debug(logMsg);
 
             //Store the log
-            using (var session = DocumentStore.OpenSession())
+            using (var session = _documentStore.OpenSession())
             {
                 session.Store(logMsg);
                 session.SaveChanges();
@@ -107,5 +105,15 @@ namespace Alcatraz.Core.Server
             //Broadcast the log to the clients
             _clients.received(logMsg);
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            if (_documentStore != null) _documentStore.Dispose();
+            if (_server != null) _server.Stop();
+        }
+
+        #endregion
     }
 }
