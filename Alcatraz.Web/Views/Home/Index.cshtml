@@ -4,6 +4,7 @@
 
 @section head {
     <script src="http://localhost:8081/signalr/hubs" type="text/javascript"> </script>    
+    <script src="~/Scripts/handlebars-1.0.0.beta.6.js" type="text/javascript"> </script>    
 }
 
 @section featured {
@@ -22,21 +23,51 @@
     Logs
 </h3>
 
-<ul id="messages">
-</ul>
+<div id="master-container">
+    
+</div>
+
+<script id="log-container-template" type="text/x-handlebars-template">
+    <div> 
+        <h4>{{Machine}}-{{App}}</h4>
+        <div id="{{Machine}}-{{App}}" class="log-container">
+            
+        </div>
+    </div>
+</script>
+
+<script id="log-template" type="text/x-handlebars-template">
+  <div class="log {{level}}">
+    {{Level}} - {{Message}}
+  </div>
+</script>
 
 <script type="text/javascript">
-    $(function() {
-        var logHub = $.connection.logHub;
+    $(function () {
+        //Initialize the templates
+        var logTemplate = Handlebars.compile($("#log-template").html());
+        var logContainerTemplate = Handlebars.compile($("#log-container-template").html());
+
 
         function addMessage(msg) {
-            $("<li/>").html(msg.Message).prependTo("#messages").effect("highlight");
+            //Enhance the logmsg for easy templating
+            msg.Machine = msg.Properties["log4jmachinename"];
+            msg.App = msg.Properties["log4japp"].replace(/[^a-zA-Z0-9]/ig, "");
+            //Search for the contaner           
+            var containerKey = msg.Machine + "-" + msg.App;
+            var container = $("#" + containerKey);
+            if (!container.get(0)) {
+                $("#master-container").append(logContainerTemplate(msg));
+            }
+            $(logTemplate(msg)).prependTo("#" + containerKey).effect("highlight");
         }
+
+        var logHub = $.connection.logHub;
 
         logHub.received = addMessage;
 
-        $.connection.hub.start({ transport: 'negotiate' }, function() {
-            logHub.getLogs(function(data) {
+        $.connection.hub.start({ transport: 'negotiate' }, function () {
+            logHub.getLogs(function (data) {
                 for (var i = data.length - 1; i >= 0; i--) {
                     addMessage(data[i]);
                 }
