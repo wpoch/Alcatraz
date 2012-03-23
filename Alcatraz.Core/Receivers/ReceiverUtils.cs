@@ -9,30 +9,30 @@ namespace Alcatraz.Core.Receivers
 {
     public static class ReceiverUtils
     {
-        static readonly DateTime s1970 = new DateTime(1970, 1, 1);
-
-        public static string GetTypeDescription(Type type)
-        {
-            var attr = (DisplayNameAttribute)Attribute.GetCustomAttribute(type, typeof(DisplayNameAttribute), true);
-            return attr != null ? attr.DisplayName : type.ToString();
-        }
+        private static readonly DateTime s1970 = new DateTime(1970, 1, 1);
 
         /// <summary>
         /// We can share settings to improve performance
         /// </summary>
-        static readonly XmlReaderSettings XmlSettings = CreateSettings();
-
-        static XmlReaderSettings CreateSettings()
-        {
-            return new XmlReaderSettings { CloseInput = false, ValidationType = ValidationType.None };
-        }
+        private static readonly XmlReaderSettings XmlSettings = CreateSettings();
 
         /// <summary>
         /// We can share parser context to improve performance
         /// </summary>
-        static readonly XmlParserContext XmlContext = CreateContext();
+        private static readonly XmlParserContext XmlContext = CreateContext();
 
-        static XmlParserContext CreateContext()
+        public static string GetTypeDescription(Type type)
+        {
+            var attr = (DisplayNameAttribute) Attribute.GetCustomAttribute(type, typeof (DisplayNameAttribute), true);
+            return attr != null ? attr.DisplayName : type.ToString();
+        }
+
+        private static XmlReaderSettings CreateSettings()
+        {
+            return new XmlReaderSettings {CloseInput = false, ValidationType = ValidationType.None};
+        }
+
+        private static XmlParserContext CreateContext()
         {
             var nt = new NameTable();
             var nsmanager = new XmlNamespaceManager(nt);
@@ -48,7 +48,7 @@ namespace Alcatraz.Core.Receivers
             // In case of ungraceful disconnect 
             // logStream is closed and XmlReader throws the exception,
             // which we handle in TcpReceiver
-            using (var reader = XmlReader.Create(logStream, XmlSettings, XmlContext))
+            using (XmlReader reader = XmlReader.Create(logStream, XmlSettings, XmlContext))
                 return ParseLog4JXmlLogEvent(reader, defaultLogger);
         }
 
@@ -65,15 +65,15 @@ namespace Alcatraz.Core.Receivers
             catch (Exception e)
             {
                 return new LogMessage
-                {
-                    // Create a simple log message with some default values
-                    LoggerName = defaultLogger,
-                    ThreadName = "NA",
-                    Message = logEvent,
-                    TimeStamp = DateTime.Now,
-                    Level = LogLevels.Instance[LogLevel.Info],
-                    ExceptionString = e.Message
-                };
+                           {
+                               // Create a simple log message with some default values
+                               LoggerName = defaultLogger,
+                               ThreadName = "NA",
+                               Message = logEvent,
+                               TimeStamp = DateTime.Now,
+                               Level = LogLevels.Instance[LogLevel.Info],
+                               ExceptionString = e.Message
+                           };
             }
         }
 

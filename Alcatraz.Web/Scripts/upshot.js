@@ -15,8 +15,7 @@
 /// Core.js
 ///
 
-(function (global, undefined)
-{
+(function(global, undefined) {
 
     function extend(target, members) {
         for (var member in members) {
@@ -30,7 +29,7 @@
         for (var i = 0; i < names.length; i++) {
             var ns = current[names[i]];
             if (!ns || typeof ns !== "object") {
-                current[names[i]] = ns = {};
+                current[names[i]] = ns = { };
             }
             current = ns;
         }
@@ -38,7 +37,8 @@
     }
 
     function defineClass(ctor, instanceMembers, classMembers) {
-        ctor = ctor || function () { };
+        ctor = ctor || function() {
+        };
         if (instanceMembers) {
             extend(ctor.prototype, instanceMembers);
         }
@@ -49,11 +49,12 @@
     }
 
     function deriveClass(basePrototype, ctor, instanceMembers) {
-        var prototype = {};
+        var prototype = { };
         extend(prototype, basePrototype);
-        extend(prototype, instanceMembers);  // Will override like-named members on basePrototype.
+        extend(prototype, instanceMembers); // Will override like-named members on basePrototype.
 
-        ctor = ctor || function () { };
+        ctor = ctor || function() {
+        };
         ctor.prototype = prototype;
         ctor.prototype.constructor = ctor;
         return ctor;
@@ -86,10 +87,11 @@
     }
 
     function isGuid(value) {
-        return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/.test(value);
+        return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/ .test(value);
     }
 
     var hasOwnProperty = Object.prototype.hasOwnProperty;
+
     function isEmpty(obj) {
         if (obj === null || obj === undefined) {
             return true;
@@ -103,6 +105,7 @@
     }
 
     var idCounter = 0;
+
     function uniqueId(prefix) {
         /// <summary>Generates a unique id (unique within the entire client session)</summary>
         /// <param name="prefix" type="String">Optional prefix to the id</param>
@@ -128,7 +131,8 @@
                 throw "upshot.cache cannot be used with DOM elements";
             }
             var cacheName = upshot.cacheName || (upshot.cacheName = uniqueId("__upshot__"));
-            object[cacheName] || (object[cacheName] = function () { });
+            object[cacheName] || (object[cacheName] = function() {
+            });
             return object[cacheName][key] = value;
         }
     }
@@ -159,6 +163,7 @@
     }
 
     // This routine provides an equivalent of array.push(item) missing from JavaScript array.
+
     function arrayRemove(array, item) {
         var callback = upshot.isFunction(item) ? item : undefined;
         for (var index = 0; index < array.length; index++) {
@@ -200,33 +205,35 @@
         ServerDeleting: "ServerDeleting",
         Deleted: "Deleted",
 
-        isClientModified: function (entityState) {
+        isClientModified: function(entityState) {
             return entityState && entityState.indexOf("Client") === 0;
         },
-        isServerSyncing: function (entityState) {
+        isServerSyncing: function(entityState) {
             return entityState && entityState.indexOf("Server") === 0;
         }
     };
 
     ///#DEBUG
-    upshot.assert = function (cond, msg) {
+    upshot.assert = function(cond, msg) {
         if (!cond) {
             alert(msg || "assert is encountered!");
         }
-    }
+    };
     ///#ENDDEBUG
 
     var entitySources = [];
-    function registerRootEntitySource (entitySource) {
+
+    function registerRootEntitySource(entitySource) {
         entitySources.push(entitySource);
     }
 
-    function deregisterRootEntitySource (entitySource) {
+    function deregisterRootEntitySource(entitySource) {
         entitySources.splice($.inArray(entitySource, entitySources), 1);
     }
 
     var recomputeInProgress;
-    function triggerRecompute () {
+
+    function triggerRecompute() {
         if (recomputeInProgress) {
             throw "Cannot make observable edits from within an event callback.";
         }
@@ -235,28 +242,27 @@
             recomputeInProgress = true;
 
             var sources = entitySources.slice();
-            $.each(sources, function (index, source) {
+            $.each(sources, function(index, source) {
                 source.__recomputeDependentViews();
             });
 
-            $.each(sources, function (index, source) {
+            $.each(sources, function(index, source) {
                 if (source.__flushEntityStateChangedEvents) {
                     source.__flushEntityStateChangedEvents();
                 }
             });
-        }
-        finally {
+        } finally {
             recomputeInProgress = false;
         }
     }
 
-    function beginChange () {
+    function beginChange() {
         if (recomputeInProgress) {
             throw "Cannot make observable edits from within an event callback.";
         }
     }
 
-    function endChange () {
+    function endChange() {
         triggerRecompute();
     }
 
@@ -272,12 +278,11 @@
 /// Observability.js
 ///
 
-(function (global, $, upshot, undefined)
-{
-    var observability = upshot.observability = upshot.observability || {};
+(function(global, $, upshot, undefined) {
+    var observability = upshot.observability = upshot.observability || { };
 
-    $.each(["track", "insert", "remove", "refresh", "isProperty", "getProperty", "setProperty", "isArray", "createCollection", "asArray", "map", "unmap", "setContextProperty"], function (index, value) {
-        observability[value] = function () {
+    $.each(["track", "insert", "remove", "refresh", "isProperty", "getProperty", "setProperty", "isArray", "createCollection", "asArray", "map", "unmap", "setContextProperty"], function(index, value) {
+        observability[value] = function() {
             // NOTE: observability.configuration is expected to be established by a loaded Compat.<platform>.js.
             // TODO: Support apps and UI libraries that have no observability design.
             var config = observability.configuration;
@@ -285,7 +290,7 @@
         };
     });
 
-    upshot.map = function (data, entityType, target) {
+    upshot.map = function(data, entityType, target) {
         // Interestingly, we don't use a "mapNested" parameter here (as Upshot proper does).
         // As a consequence, apps that call upshot.map from a map function will not pick up custom
         // map functions for nested entities/objects.  They'd need to hand-code calls to custom map
@@ -299,15 +304,14 @@
 /// Metadata.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var obs = upshot.observability;
 
-    var metadata = {};
+    var metadata = { };
 
-    upshot.metadata = function (entityType) {
+    upshot.metadata = function(entityType) {
         if (arguments.length === 0) {
-            return $.extend({}, metadata);
+            return $.extend({ }, metadata);
         } else if (typeof entityType === "string") {
             if (arguments.length === 1) {
                 return metadata[entityType];
@@ -318,13 +322,12 @@
                 // ...else assume the new metadata is the same as that previously registered for entityType.
             }
         } else {
-            $.each(entityType, function (entityType, metadata) {
+            $.each(entityType, function(entityType, metadata) {
                 upshot.metadata(entityType, metadata);
             });
         }
-    }
-
-    upshot.metadata.getProperties = function (entity, entityType, includeAssocations) {
+    };
+    upshot.metadata.getProperties = function(entity, entityType, includeAssocations) {
         var props = [];
         if (entityType) {
             var metadata = upshot.metadata(entityType);
@@ -347,9 +350,8 @@
             }
         }
         return props;
-    }
-
-    upshot.metadata.getPropertyType = function (entityType, property) {
+    };
+    upshot.metadata.getPropertyType = function(entityType, property) {
         if (entityType) {
             var metadata = upshot.metadata(entityType);
             if (metadata && metadata.fields && metadata.fields[property]) {
@@ -357,18 +359,17 @@
             }
         }
         return null;
-    }
+    };
 }
 )(this, jQuery, upshot);
 ///
 /// EntitySource.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var obs = upshot.observability;
 
-    var ctor = function (options) {
+    var ctor = function(options) {
         var result = options && options.result;
         if (result) {
             if (upshot.EntitySource.as(result)) {
@@ -377,16 +378,16 @@
         }
 
         this._viewsToRecompute = [];
-        this._eventCallbacks = {};
+        this._eventCallbacks = { };
         this._clientEntities = result || obs.createCollection();
 
         var self = this;
         obs.track(this._clientEntities, {
-            afterChange: function (array, type, eventArguments) {
+            afterChange: function(array, type, eventArguments) {
                 upshot.__beginChange();
                 self._handleArrayChange(type, eventArguments);
             },
-            afterEvent: function () {
+            afterEvent: function() {
                 upshot.__endChange();
             }
         });
@@ -395,24 +396,23 @@
     };
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
-
-        dispose: function () {
+        dispose: function() {
             /// <summary>
             /// Disposes the EntitySource instance.
             /// </summary>
 
-            if (this._eventCallbacks) {  // Use _eventCallbacks as an indicator as to whether we've been disposed.
+            if (this._eventCallbacks) { // Use _eventCallbacks as an indicator as to whether we've been disposed.
                 obs.track(this._clientEntities, null);
                 upshot.deleteCache(this._clientEntities, "entitySource");
-                this._dispose();  // Give subclass code an opportunity to clean up.
+                this._dispose(); // Give subclass code an opportunity to clean up.
                 this._eventCallbacks = null;
             }
         },
 
         // TODO: bind/unbind/_trigger are duplicated in EntitySource and DataContext, consider common routine.
-        bind: function (event, callback) {
+        bind: function(event, callback) {
             /// <summary>
             /// Registers the supplied callback to be called when an event is raised.
             /// </summary>
@@ -435,7 +435,7 @@
             return this;
         },
 
-        unbind: function (event, callback) {
+        unbind: function(event, callback) {
             /// <summary>
             /// Deregisters the supplied callback for the supplied event.
             /// </summary>
@@ -465,7 +465,7 @@
             return this;
         },
 
-        getEntities: function () {
+        getEntities: function() {
             /// <summary>
             /// Returns the stable, observable array of model data.
             /// </summary>
@@ -477,24 +477,24 @@
 
         // Internal methods
 
-        __registerForRecompute: function (entityView) {
+        __registerForRecompute: function(entityView) {
             if ($.inArray(entityView, this._viewsToRecompute) <= 0) {
                 this._viewsToRecompute.push(entityView);
             }
         },
 
-        __recomputeDependentViews: function () {
-            while (this._viewsToRecompute.length > 0) {  // Downstream entity views might be dirtied due to recompute.
+        __recomputeDependentViews: function() {
+            while (this._viewsToRecompute.length > 0) { // Downstream entity views might be dirtied due to recompute.
                 var viewsToRecompute = this._viewsToRecompute.slice();
                 this._viewsToRecompute.splice(0, this._viewsToRecompute.length);
-                $.each(viewsToRecompute, function (index, entityView) {
+                $.each(viewsToRecompute, function(index, entityView) {
                     entityView.__recompute();
                 });
             }
         },
 
         // Used to translate entity inserts through EntityViews (and onto their input EntitySource).
-        __addEntity: function (entity) {
+        __addEntity: function(entity) {
             var index = obs.asArray(this._clientEntities).length;
             obs.insert(this._clientEntities, index, [entity]);
 
@@ -502,7 +502,7 @@
         },
 
         // Used to translate entity removes through EntityViews (and onto their input EntitySource).
-        __deleteEntity: function (entity, index) {
+        __deleteEntity: function(entity, index) {
             var index = $.inArray(entity, obs.asArray(this._clientEntities));
             ///#DEBUG
             upshot.assert(index >= 0, "entity must exist!");
@@ -514,50 +514,47 @@
 
         // Private methods
 
-        _dispose: function () {
+        _dispose: function() {
             // Will be overridden by derived classes.
         },
 
-        _handleArrayChange: function (type, eventArguments) {
+        _handleArrayChange: function(type, eventArguments) {
             switch (type) {
-                case "insert":
-                    var entitiesToAdd = eventArguments.items;
-                    if (entitiesToAdd.length > 1) {
-                        throw "NYI -- Can only add a single entity to/from an array in one operation.";
-                    }
+            case "insert":
+                var entitiesToAdd = eventArguments.items;
+                if (entitiesToAdd.length > 1) {
+                    throw "NYI -- Can only add a single entity to/from an array in one operation.";
+                }
 
-                    var entityToAdd = entitiesToAdd[0];
-                    this._handleEntityAdd(entityToAdd);
-                    break;
-
-                case "remove":
-                    throw "Use 'deleteEntity' to delete entities from your array.  Destructive delete is not yet implemented.";
-
-                case "replaceAll":
-                    if (!upshot.sameArrayContents(eventArguments.newItems, obs.asArray(this._clientEntities))) {
-                        throw "NYI -- Can only replaceAll with own entities.";
-                    }
-                    break;
-
-                default:
-                    throw "NYI -- Array operation '" + type + "' is not supported.";
+                var entityToAdd = entitiesToAdd[0];
+                this._handleEntityAdd(entityToAdd);
+                break;
+            case "remove":
+                throw "Use 'deleteEntity' to delete entities from your array.  Destructive delete is not yet implemented.";
+            case "replaceAll":
+                if (!upshot.sameArrayContents(eventArguments.newItems, obs.asArray(this._clientEntities))) {
+                    throw "NYI -- Can only replaceAll with own entities.";
+                }
+                break;
+            default:
+                throw "NYI -- Array operation '" + type + "' is not supported.";
             }
 
             this._trigger("arrayChanged", type, eventArguments);
         },
 
-        _handleEntityAdd: function (entity) {
+        _handleEntityAdd: function(entity) {
             // Will be overridden by derived classes to do specific handling for an entity add.
         },
 
-        _purgeEntity: function (entity) {
+        _purgeEntity: function(entity) {
             // TODO -- Should we try to handle duplicates here?
             var index = $.inArray(entity, obs.asArray(this._clientEntities));
             obs.remove(this._clientEntities, index, 1);
             this._trigger("arrayChanged", "remove", { index: index, items: [entity] });
         },
 
-        _trigger: function (eventType) {
+        _trigger: function(eventType) {
             var list = this._eventCallbacks[eventType];
             if (list) {
                 var args = Array.prototype.slice.call(arguments, 1);
@@ -572,7 +569,7 @@
     };
 
     var classMembers = {
-        as: function (array) {
+        as: function(array) {
             return upshot.cache(array, "entitySource");
         }
     };
@@ -585,25 +582,24 @@
 /// EntityView.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var base = upshot.EntitySource.prototype;
 
     var obs = upshot.observability;
 
-    var ctor = function (options) {
+    var ctor = function(options) {
 
         this._needRecompute = false;
 
         var self = this;
         this._observer = {
-            propertyChanged: function (entity, property, newValue) { self._onPropertyChanged(entity, property, newValue); },
-            arrayChanged: function (type, eventArgs) { self._onArrayChanged(type, eventArgs); },
-            entityStateChanged: function (entity, state, error) { self._onEntityStateChanged(entity, state, error); }
+            propertyChanged: function(entity, property, newValue) { self._onPropertyChanged(entity, property, newValue); },
+            arrayChanged: function(type, eventArgs) { self._onArrayChanged(type, eventArgs); },
+            entityStateChanged: function(entity, state, error) { self._onEntityStateChanged(entity, state, error); }
         };
 
         // RemoteDataSource may dynamically bind to its EntitySet as it refreshes.
-        this._entitySource = null;  // Make JS runtime type inference happy?
+        this._entitySource = null; // Make JS runtime type inference happy?
 
         var entitySource = options && options.source;
         if (entitySource) {
@@ -613,14 +609,14 @@
         base.constructor.call(this, options);
     };
 
-    var dataContextMethodNames = [ 
-        "getDataContext", 
-        "getEntityState", 
-        "isPropertyChanged", 
-        "getEntityValidationRules", 
-        "getEntityId", 
-        "revertChange", 
-        "revertChanges", 
+    var dataContextMethodNames = [
+        "getDataContext",
+        "getEntityState",
+        "isPropertyChanged",
+        "getEntityValidationRules",
+        "getEntityId",
+        "revertChange",
+        "revertChanges",
         "deleteEntity",
         "getEntityErrors",
         "getEntityError",
@@ -628,18 +624,17 @@
     ];
 
     var instanceMembers = {
-
-        ///#DEBUG
-        getDataContext: function () {
+    ///#DEBUG
+        getDataContext: function() {
             /// <summary>
             /// Returns the DataContext used as a cache for model data.
             /// </summary>
             /// <returns type="upshot.DataContext"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        getEntityState: function (entity) {
+        getEntityState: function(entity) {
             /// <summary>
             /// Returns the EntityState for the supplied entity.
             /// </summary>
@@ -648,10 +643,10 @@
             /// </param>
             /// <returns type="upshot.EntityState"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        isPropertyChanged: function (entity, propertyName) {
+        isPropertyChanged: function(entity, propertyName) {
             /// <summary>
             /// Determines whether a property on a given entity has been updated.
             /// </summary>
@@ -663,29 +658,29 @@
             /// </param>
             /// <returns type="Boolean"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        getEntityValidationRules: function () {
+        getEntityValidationRules: function() {
             /// <summary>
             /// Returns entity validation rules for the type of entity returned by this EntityView.
             /// </summary>
             /// <returns type="Object"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        getEntityId: function (entity) {
+        getEntityId: function(entity) {
             /// <summary>
             /// Returns an identifier for the supplied entity.
             /// </summary>
             /// <param name="entity" type="Object"/>
             /// <returns type="String"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        revertChange: function (entity, propertyName) {
+        revertChange: function(entity, propertyName) {
             /// <summary>
             /// Reverts property updates for the supplied entity back to their original values.
             /// </summary>
@@ -697,10 +692,10 @@
             /// </param>
             /// <returns type="upshot.EntityView"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        revertChanges: function (all) {
+        revertChanges: function(all) {
             /// <summary>
             /// Reverts any edits to model data (to entities) back to original entity values.
             /// </summary>
@@ -709,10 +704,10 @@
             /// </param>
             /// <returns type="upshot.EntityView"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        deleteEntity: function (entity) {
+        deleteEntity: function(entity) {
             /// <summary>
             /// Marks the supplied entity for deletion.  This is a non-destructive operation, meaning that the entity will remain in the EntityView.getEntities() array until the server commits the delete.
             /// </summary>
@@ -721,19 +716,19 @@
             /// </param>
             /// <returns type="upshot.EntityView"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        getEntityErrors: function () {
+        getEntityErrors: function() {
             /// <summary>
             /// Returns an array of server errors by entity, of the form [ &#123; entity: &#60;entity&#62;, error: &#60;object&#62; &#125;, ... ].
             /// </summary>
             /// <returns type="Array"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        getEntityError: function (entity) {
+        getEntityError: function(entity) {
             /// <summary>
             /// Returns server errors for the supplied entity.
             /// </summary>
@@ -742,10 +737,10 @@
             /// </param>
             /// <returns type="Object"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
 
-        hasChanges: function (obj, property) {
+        hasChanges: function(obj, property) {
             /// <summary>
             /// Determines if a given object has updated properties.  The object can be an entity or it can be an object nested within an entity.
             /// </summary>
@@ -757,14 +752,14 @@
             /// </param>
             /// <returns type="Boolean"/>
 
-            throw "Not reached";  // For Intellisense only.
+            throw "Not reached"; // For Intellisense only.
         },
         ///#ENDDEBUG
 
 
         // Internal methods
 
-        __registerForRecompute: function (entityView) {
+        __registerForRecompute: function(entityView) {
             // Some EntityView that depends on us wants to recompute.
             base.__registerForRecompute.apply(this, arguments);
 
@@ -773,7 +768,7 @@
             this._entitySource.__registerForRecompute(this);
         },
 
-        __recompute: function () {
+        __recompute: function() {
             // Our input EntitySource is giving us an opportunity to recompute.  Do so, if we've so-marked.
             if (this._needRecompute) {
                 this._needRecompute = false;
@@ -787,14 +782,14 @@
 
         // Private methods
 
-        _dispose: function () {
-            if (this._entitySource) {  // RemoteDataSource dynamically binds to its input EntitySource.
+        _dispose: function() {
+            if (this._entitySource) { // RemoteDataSource dynamically binds to its input EntitySource.
                 this._entitySource.unbind(this._observer);
             }
             base._dispose.apply(this, arguments);
         },
 
-        _bindToEntitySource: function (entitySource) {
+        _bindToEntitySource: function(entitySource) {
 
             if (this._entitySource === entitySource) {
                 return;
@@ -804,7 +799,7 @@
 
             // Remove proxied DataContext-derived methods.
             if (this._entitySource) {
-                $.each(dataContextMethodNames, function (index, name) {
+                $.each(dataContextMethodNames, function(index, name) {
                     if (self[name]) {
                         delete self[name];
                     }
@@ -817,21 +812,21 @@
 
             // Proxy these DataContext-derived methods, if they're available.
             if (entitySource.getDataContext) {
-                $.each(dataContextMethodNames, function (index, name) {
+                $.each(dataContextMethodNames, function(index, name) {
                     if (name !== "getEntityErrors") {
                         // Don't use $.proxy here, as that will statically bind to entitySource[name] and
                         // RemoteDataSource will dynamically change entitySource[name].
-                        self[name] = function () {
+                        self[name] = function() {
                             var ret = entitySource[name].apply(entitySource, arguments);
                             // TODO: make datacontext api chainable (eg. return this).
-                            return (name === "deleteEntity" || /revertChange/.test(name)) ? self : ret;
+                            return (name === "deleteEntity" || /revertChange/ .test(name)) ? self : ret;
                         };
                     }
                 });
             }
 
-            this.getEntityErrors = function () {
-                return $.grep(entitySource.getEntityErrors(), function (error) {
+            this.getEntityErrors = function() {
+                return $.grep(entitySource.getEntityErrors(), function(error) {
                     return self._haveEntity(error.entity);
                 });
             };
@@ -839,34 +834,34 @@
             entitySource.bind(this._observer);
         },
 
-        _setNeedRecompute: function () {
+        _setNeedRecompute: function() {
             // Sub-classes will call this method to mark themselves as being dirty, requiring recompute.
             this._needRecompute = true;
             this._entitySource.__registerForRecompute(this);
         },
 
-        _recompute: function () {
+        _recompute: function() {
             // In response to a call to _setNeedRecompute, we're getting called to recompute as
             // part of the next recompute wave.
-            throw "Unreachable";  // Abstract/pure virtual method.
+            throw "Unreachable"; // Abstract/pure virtual method.
         },
 
-        _handleEntityAdd: function (entity) {
+        _handleEntityAdd: function(entity) {
             // Translate adds onto our input EntitySource.
             this._entitySource.__addEntity(entity);
 
             base._handleEntityAdd.apply(this, arguments);
         },
 
-        _haveEntity: function (entity) {
+        _haveEntity: function(entity) {
             return $.inArray(entity, obs.asArray(this._clientEntities)) >= 0;
         },
 
-        _purgeEntity: function (entity) {
+        _purgeEntity: function(entity) {
             base._purgeEntity.apply(this, arguments);
         },
 
-        _onPropertyChanged: function (entity, property, newValue) {
+        _onPropertyChanged: function(entity, property, newValue) {
             // Translate property changes from our input EntitySource onto our result, if appropriate.
             // NOTE: _haveEntity will be with respect to our current, stable set of result entities.
             // Ignoring direct, observable inserts and removes, this result set will only change
@@ -876,7 +871,7 @@
             }
         },
 
-        _onArrayChanged: function (type, eventArgs) {
+        _onArrayChanged: function(type, eventArgs) {
             // NOTE: These are not translated directly in the same way that property and entity state
             // change events are.  Rather, subclasses have specific logic as to how changes to the 
             // membership of their input EntitySource impacts their result entity membership.
@@ -884,7 +879,7 @@
             // Will be overridden by derived classes.
         },
 
-        _onEntityStateChanged: function (entity, state, error) {
+        _onEntityStateChanged: function(entity, state, error) {
             if (this._haveEntity(entity)) {
                 if (state === upshot.EntityState.Deleted) {
                     // Entities deleted from our cache (due to an accepted server delete or due to a
@@ -911,14 +906,13 @@
 /// DataSource.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var base = upshot.EntityView.prototype;
 
     var obs = upshot.observability;
     var queryOptions = { paging: "setPaging", sort: "setSort", filter: "setFilter" };
 
-    var ctor = function (options) {
+    var ctor = function(options) {
 
         if (options && options.result && options.result.length !== 0) {
             throw "NYI -- Currently, \"result\" array must be empty to bind to a data source.";
@@ -932,7 +926,7 @@
         var self = this;
         this._options = [];
         if (options) {
-            $.each(options, function (key, value) {
+            $.each(options, function(key, value) {
                 if (queryOptions[key]) {
                     self[queryOptions[key]](value);
                 } else {
@@ -945,22 +939,21 @@
     };
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
+    // TODO -- These query set-* methods should be consolidated, passing a "settings" parameter.
+    // That way, we can issue a single "needs refresh" event when the client updates the query settings.
+    // TODO -- Changing query options should trigger "results stale".
 
-        // TODO -- These query set-* methods should be consolidated, passing a "settings" parameter.
-        // That way, we can issue a single "needs refresh" event when the client updates the query settings.
-        // TODO -- Changing query options should trigger "results stale".
-
-        setSort: function (sort) {
-            throw "Unreachable";  // Abstract/pure virtual method.
+        setSort: function(sort) {
+            throw "Unreachable"; // Abstract/pure virtual method.
         },
 
-        setFilter: function (filter) {
-            throw "Unreachable";  // Abstract/pure virtual method.
+        setFilter: function(filter) {
+            throw "Unreachable"; // Abstract/pure virtual method.
         },
 
-        setPaging: function (paging) {
+        setPaging: function(paging) {
             /// <summary>
             /// Establishes the paging specification that is to be applied when loading model data.
             /// </summary>
@@ -971,14 +964,14 @@
             /// </param>
             /// <returns type="upshot.DataSource"/>
 
-            paging = paging || {};
+            paging = paging || { };
             this._skip = paging.skip;
             this._take = paging.take;
             this._includeTotalCount = !!paging.includeTotalCount;
             return this;
         },
 
-        getTotalEntityCount: function () {
+        getTotalEntityCount: function() {
             /// <summary>
             /// Returns the total entity count from the last refresh operation on this DataSource.  This count will differ from DataSource.getEntities().length when a filter or paging specification is applied to this DataSource.
             /// </summary>
@@ -991,11 +984,11 @@
             return this._lastRefreshTotalEntityCount;
         },
 
-        refresh: function (options) {
-            throw "Unreachable";  // Abstract/pure virtual method.
+        refresh: function(options) {
+            throw "Unreachable"; // Abstract/pure virtual method.
         },
 
-        reset: function () {
+        reset: function() {
             /// <summary>
             /// Empties the result array for this DataSource (that is, the array returned by DataSource.getEntities()).  The result array can be repopulated using DataSource.refresh().
             /// </summary>
@@ -1011,7 +1004,7 @@
         // acceptable filter parameter
         // { property: "Id", operator: "==", value: 1 }  // default operator is "=="
         // and an array of such
-        _normalizeFilters: function (filter) {
+        _normalizeFilters: function(filter) {
             filter = upshot.isArray(filter) ? filter : [filter];
             var filters = [];
             for (var i = 0; i < filter.length; i++) {
@@ -1026,34 +1019,34 @@
             return filters;
         },
 
-        _completeRefresh: function (entities, totalCount, success) {
+        _completeRefresh: function(entities, totalCount, success) {
             if (this._applyNewQueryResult(entities, totalCount)) {
                 upshot.__triggerRecompute();
             }
 
             var newClientEntities = obs.asArray(this._clientEntities),
-            newTotalCount = this._lastRefreshTotalEntityCount;
+                newTotalCount = this._lastRefreshTotalEntityCount;
             this._trigger("refreshSuccess", newClientEntities, newTotalCount);
             if ($.isFunction(success)) {
                 success.call(this, newClientEntities, newTotalCount);
             }
         },
 
-        _failRefresh: function (httpStatus, errorText, context, fail) {
+        _failRefresh: function(httpStatus, errorText, context, fail) {
             this._trigger("refreshError", httpStatus, errorText, context);
             if ($.isFunction(fail)) {
                 fail.call(this, httpStatus, errorText, context);
             }
         },
 
-        _trigger: function (eventType) {
+        _trigger: function(eventType) {
             base._trigger.apply(this, arguments);
             if (this._options[eventType]) {
                 this._options[eventType].apply(this, Array.prototype.slice.call(arguments, 1));
             }
         },
 
-        _applyNewQueryResult: function (entities, totalCount) {
+        _applyNewQueryResult: function(entities, totalCount) {
             this._lastRefreshTotalEntityCount = totalCount;
 
             var sameEntities = upshot.sameArrayContents(obs.asArray(this._clientEntities), entities);
@@ -1078,24 +1071,23 @@
 /// EntitySet.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var base = upshot.EntitySource.prototype;
 
     var obs = upshot.observability;
 
-    var ctor = function (dataContext, entityType) {
+    var ctor = function(dataContext, entityType) {
 
         this._dataContext = dataContext;
         this._entityType = entityType;
 
-        this._callbacks = {};
+        this._callbacks = { };
         this._serverEntities = [];
-        this._entityStates = {};
+        this._entityStates = { };
         this._addedEntities = [];
         this._errors = [];
-        this._associatedEntitiesViews = {};
-        this._tracked = {};
+        this._associatedEntitiesViews = { };
+        this._tracked = { };
         this._tracker = null;
         this._deferredEntityStateChangeEvents = [];
 
@@ -1106,15 +1098,14 @@
 
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
-
-        dispose: function () {
+        dispose: function() {
             throw "EntitySets should only be disposed by their DataContext.";
         },
 
         // TODO, kylemc: how does this compose with bind/unbind on EntitySource?
-        _bind: function (event, obj, callback) {
+        _bind: function(event, obj, callback) {
             /// <summary>Binds to an event</summary>
             /// <param name="event" type="String">The event to bind to.
             /// &#10;
@@ -1128,7 +1119,7 @@
             return this;
         },
 
-        _unbind: function (event, obj, callback) {
+        _unbind: function(event, obj, callback) {
             var list = this._callbacks[event];
             if (list) {
                 for (var i = 0, l = list.length; i < l; i++) {
@@ -1141,7 +1132,7 @@
             return this;
         },
 
-        _triggerEvent: function (event, obj) {
+        _triggerEvent: function(event, obj) {
             var self = this,
                 list = this._callbacks[event],
                 args = Array.prototype.slice.call(arguments, 1);
@@ -1156,7 +1147,7 @@
             return this;
         },
 
-        getEntityState: function (entity) {
+        getEntityState: function(entity) {
             /// <summary>
             /// Returns the EntityState for the supplied entity.
             /// </summary>
@@ -1169,7 +1160,7 @@
             return id === null ? null : this._entityStates[id];
         },
 
-        getEntityId: function (entity) {
+        getEntityId: function(entity) {
             /// <summary>
             /// Returns an identifier for the supplied entity.
             /// </summary>
@@ -1181,15 +1172,15 @@
                 return addedEntity.clientId;
             }
 
-            try {  // This entity might not have valid PK property values (a reverted add, for instance).
+            try { // This entity might not have valid PK property values (a reverted add, for instance).
                 // Trust only the property values on the original entity, allowing the client to update id properties.
                 return this._getClientEntityIdentity(entity);
-            } catch (e) {
+            } catch(e) {
                 return null;
             }
         },
 
-        getDataContext: function () {
+        getDataContext: function() {
             /// <summary>
             /// Returns the DataContext used as a cache for model data.
             /// </summary>
@@ -1198,7 +1189,7 @@
             return this._dataContext;
         },
 
-        getEntityValidationRules: function () {
+        getEntityValidationRules: function() {
             /// <summary>
             /// Returns entity validation rules for the type of entity cached by this EntitySet.
             /// </summary>
@@ -1211,7 +1202,7 @@
             };
         },
 
-        isPropertyChanged: function (entity, propertyName) {
+        isPropertyChanged: function(entity, propertyName) {
             /// <summary>
             /// Determines whether a property on a given entity has been updated.
             /// </summary>
@@ -1226,20 +1217,20 @@
             return this.hasChanges(entity, propertyName);
         },
 
-        getEntityErrors: function () {
+        getEntityErrors: function() {
             /// <summary>
             /// Returns an array of server errors by entity, of the form [ &#123; entity: &#60;entity&#62;, error: &#60;object&#62; &#125;, ... ].
             /// </summary>
             /// <returns type="Array"/>
 
             var self = this;
-            return $.map(this._errors, function (trackingId) {
+            return $.map(this._errors, function(trackingId) {
                 var tracking = self._tracked[trackingId];
                 return { entity: tracking.obj, error: tracking.error };
             });
         },
 
-        getEntityError: function (entity) {
+        getEntityError: function(entity) {
             /// <summary>
             /// Returns server errors for the supplied entity.
             /// </summary>
@@ -1254,7 +1245,7 @@
             }
         },
 
-        revertChange: function (entity, propertyName) {
+        revertChange: function(entity, propertyName) {
             /// <summary>
             /// Reverts property updates for the supplied entity back to their original values.
             /// </summary>
@@ -1304,7 +1295,7 @@
             return this;
         },
 
-        revertChanges: function (all) {
+        revertChanges: function(all) {
             /// <summary>
             /// Reverts any edits to model data (to entities) back to original entity values.
             /// </summary>
@@ -1323,7 +1314,7 @@
             return this;
         },
 
-        hasChanges: function (obj, property) {
+        hasChanges: function(obj, property) {
             /// <summary>
             /// Determines if a given object has updated properties.  The object can be an entity or it can be an object nested within an entity.
             /// </summary>
@@ -1340,13 +1331,17 @@
             }
 
             var changes = this._getChanges(obj);
-            if (!changes) { return false; }
-            if (!property) { return true; }
+            if (!changes) {
+                return false;
+            }
+            if (!property) {
+                return true;
+            }
 
             return changes.original.hasOwnProperty(property);
         },
 
-        deleteEntity: function (entity) {
+        deleteEntity: function(entity) {
             /// <summary>
             /// Marks the supplied entity for deletion.  This is a non-destructive operation, meaning that the entity will remain in the EntitySet.getEntities() array until the server commits the delete.
             /// </summary>
@@ -1356,9 +1351,9 @@
             /// <returns type="upshot.EntitySet"/>
 
             var id = this.getEntityId(entity),
-            index = id !== null && this._getEntityIndexFromId(id),
-            addedEntityBeingDeleted = id !== null && this._getAddedEntityFromId(id),
-            deletingAddedEntity = index < 0 && addedEntityBeingDeleted;
+                index = id !== null && this._getEntityIndexFromId(id),
+                addedEntityBeingDeleted = id !== null && this._getAddedEntityFromId(id),
+                deletingAddedEntity = index < 0 && addedEntityBeingDeleted;
             if (deletingAddedEntity) {
                 var entityState = this._entityStates[id];
                 if (entityState === upshot.EntityState.ClientAdded) {
@@ -1395,18 +1390,18 @@
 
         // Internal methods
 
-        __dispose: function () {
+        __dispose: function() {
             var self = this;
-            $.each(this._tracked, function (key, value) {
+            $.each(this._tracked, function(key, value) {
                 self._deleteTracking(value.obj);
             });
             upshot.__deregisterRootEntitySource(this);
             base.dispose.call(this);
         },
 
-        __hasUncommittedEdits: function () {
+        __hasUncommittedEdits: function() {
             var hasUncommittedEdits = false;
-            $.each(this._entityStates, function (key, value) {
+            $.each(this._entityStates, function(key, value) {
                 if (value !== upshot.EntityState.Unmodified) {
                     hasUncommittedEdits = true;
                 }
@@ -1414,14 +1409,14 @@
             return hasUncommittedEdits;
         },
 
-        __loadEntities: function (entities) {
+        __loadEntities: function(entities) {
             // For each entity, either merge it with a cached entity or add it to the cache.
             var self = this,
-            entitiesNewToEntitySet = [],
-            indexToInsertClientEntities = this._serverEntities.length;
+                entitiesNewToEntitySet = [],
+                indexToInsertClientEntities = this._serverEntities.length;
             // Re: indexToInsertClientEntities, by convention, _clientEntities are layed out as updated followed by
             // added entities.
-            var mergedLoadedEntities = $.map(entities, function (entity) {
+            var mergedLoadedEntities = $.map(entities, function(entity) {
                 return self._loadEntity(entity, entitiesNewToEntitySet);
             });
 
@@ -1436,10 +1431,10 @@
             return mergedLoadedEntities;
         },
 
-        __getEditedEntities: function () {
+        __getEditedEntities: function() {
             var self = this,
-            entities = [];
-            $.each(this._entityStates, function (id, state) {
+                entities = [];
+            $.each(this._entityStates, function(id, state) {
                 if (upshot.EntityState.isClientModified(state)) {
                     entities.push(self._getEntityFromId(id));
                 }
@@ -1448,47 +1443,44 @@
             return entities;
         },
 
-        __getEntityEdit: function (entity) {
+        __getEntityEdit: function(entity) {
             // TODO -- Throughout here, we should consult schema and strip off fields that aren't
             // compliant (like jQuery's __events__ field).
 
             var id = this.getEntityId(entity),
-            self = this,
-            submittingState,
-            operation,
-            addEntityType = function (entityToExtend) {
-                return $.extend({ "__type": self._entityType }, entityToExtend);
-            };
+                self = this,
+                submittingState,
+                operation,
+                addEntityType = function(entityToExtend) {
+                    return $.extend({ "__type": self._entityType }, entityToExtend);
+                };
             switch (this._entityStates[id]) {
-                case upshot.EntityState.ClientUpdated:
-                    submittingState = upshot.EntityState.ServerUpdating;
-                    operation = {
-                        Operation: 3,
-                        Entity: addEntityType(this._getSerializableEntity(entity)),
-                        OriginalEntity: addEntityType(this._getOriginalValue(entity, this._entityType))
-                    };
-                    break;
-
-                case upshot.EntityState.ClientAdded:
-                    submittingState = upshot.EntityState.ServerAdding;
-                    entity = this._getAddedEntityFromId(id).entity;
-                    operation = {
-                        Operation: 2,
-                        Entity: addEntityType(this._getSerializableEntity(entity))
-                    };
-                    break;
-
-                case upshot.EntityState.ClientDeleted:
-                    submittingState = upshot.EntityState.ServerDeleting;
-                    operation = {
-                        Operation: 4,
-                        Entity: addEntityType(this._getOriginalValue(entity, this._entityType))
-                    };
+            case upshot.EntityState.ClientUpdated:
+                submittingState = upshot.EntityState.ServerUpdating;
+                operation = {
+                    Operation: 3,
+                    Entity: addEntityType(this._getSerializableEntity(entity)),
+                    OriginalEntity: addEntityType(this._getOriginalValue(entity, this._entityType))
+                };
+                break;
+            case upshot.EntityState.ClientAdded:
+                submittingState = upshot.EntityState.ServerAdding;
+                entity = this._getAddedEntityFromId(id).entity;
+                operation = {
+                    Operation: 2,
+                    Entity: addEntityType(this._getSerializableEntity(entity))
+                };
+                break;
+            case upshot.EntityState.ClientDeleted:
+                submittingState = upshot.EntityState.ServerDeleting;
+                operation = {
+                    Operation: 4,
+                    Entity: addEntityType(this._getOriginalValue(entity, this._entityType))
+                };
                     // TODO -- Do we allow for concurrency guards here?
-                    break;
-
-                default:
-                    throw "Unrecognized entity state.";
+                break;
+            default:
+                throw "Unrecognized entity state.";
             }
 
             var lastError = self.getEntityError(entity);
@@ -1496,22 +1488,22 @@
                 entityType: this._entityType,
                 storeEntity: entity,
                 operation: operation,
-                updateEntityState: function () {
+                updateEntityState: function() {
                     self._updateEntityState(id, submittingState, lastError);
                 },
-                succeeded: function (result) {
+                succeeded: function(result) {
                     self._handleSubmitSucceeded(id, operation, result);
                 },
-                failed: function (error) {
+                failed: function(error) {
                     self._handleSubmitFailed(id, operation, error || lastError);
                 }
             };
             return edit;
         },
 
-        __revertChanges: function () {
+        __revertChanges: function() {
             var synchronizing;
-            $.each(this._entityStates, function (unused, state) {
+            $.each(this._entityStates, function(unused, state) {
                 if (upshot.EntityState.isServerSyncing(state)) {
                     synchronizing = true;
                     return false;
@@ -1522,16 +1514,16 @@
             }
 
             var self = this;
-            var uncommittedAddedEntities = $.grep(this._addedEntities, function (addedEntity) {
+            var uncommittedAddedEntities = $.grep(this._addedEntities, function(addedEntity) {
                 return addedEntity.entity && self._getEntityIndex(addedEntity.entity) < 0;
             });
 
             // Remove uncommitted added entities.
             if (uncommittedAddedEntities.length > 0) {
-                this._addedEntities = $.grep(this._addedEntities, function (addedEntity) {
+                this._addedEntities = $.grep(this._addedEntities, function(addedEntity) {
                     return $.inArray(addedEntity, uncommittedAddedEntities) < 0;
                 });
-                $.each(uncommittedAddedEntities, function (index, addedEntity) {
+                $.each(uncommittedAddedEntities, function(index, addedEntity) {
                     self._purgeUncommittedAddedEntity(addedEntity, true);
                 });
             }
@@ -1552,17 +1544,17 @@
             ///#ENDDEBUG
         },
 
-        __flushEntityStateChangedEvents: function () {
+        __flushEntityStateChangedEvents: function() {
             var self = this;
-            $.each(this._deferredEntityStateChangeEvents, function (index, eventArguments) {
+            $.each(this._deferredEntityStateChangeEvents, function(index, eventArguments) {
                 self._trigger.apply(self, ["entityStateChanged"].concat(eventArguments));
             });
             this._deferredEntityStateChangeEvents.splice(0, this._deferredEntityStateChangeEvents.length);
         },
 
         // Used when AssociatedEntitiesView translates an entity add into a FK property change.
-        __setProperty: function (entity, propertyName, value) {
-            var eventArguments = { oldValues: {}, newValues: {} };
+        __setProperty: function(entity, propertyName, value) {
+            var eventArguments = { oldValues: { }, newValues: { } };
             eventArguments.oldValues[propertyName] = obs.getProperty(entity, propertyName);
             eventArguments.newValues[propertyName] = value;
 
@@ -1580,13 +1572,13 @@
 
         // Private methods
 
-        _loadEntity: function (entity, entitiesNewToEntitySet) {
+        _loadEntity: function(entity, entitiesNewToEntitySet) {
             var serverIdentity = this._getEntityIdentity(entity),
                 index = this._getEntityIndexFromIdentity(serverIdentity);
             if (index >= 0) {
                 entity = this._merge(this._serverEntities[index].entity, entity);
             } else {
-                var id = serverIdentity;  // Ok to use this as an id, as this is a new, unmodified server entity.
+                var id = serverIdentity; // Ok to use this as an id, as this is a new, unmodified server entity.
                 this._addTracking([entity], this._entityType);
                 this._entityStates[id] = upshot.EntityState.Unmodified;
                 this._serverEntities.push({ entity: entity, identity: id });
@@ -1598,9 +1590,9 @@
             return entity;
         },
 
-        _handleEntityAdd: function (entity) {
-            if (this._getEntityIndex(entity) >= 0 ||  // ...in entities from last query
-                this._getAddedEntityFromEntity(entity)) {  // ...in added entities
+        _handleEntityAdd: function(entity) {
+            if (this._getEntityIndex(entity) >= 0 || // ...in entities from last query
+                this._getAddedEntityFromEntity(entity)) { // ...in added entities
                 throw "Entity already in data source.";
             }
 
@@ -1619,9 +1611,9 @@
             base._handleEntityAdd.apply(this, arguments);
         },
 
-        _changeEntityStateForUpdate: function (entity) {
+        _changeEntityStateForUpdate: function(entity) {
             var index = this._getEntityIndex(entity),
-            updatingAddedEntity = index < 0 && this._getAddedEntityFromEntity(entity);
+                updatingAddedEntity = index < 0 && this._getAddedEntityFromEntity(entity);
             if (updatingAddedEntity) {
                 var entityState = this._entityStates[this.getEntityId(entity)];
                 if (entityState === upshot.EntityState.ClientAdded) {
@@ -1658,14 +1650,14 @@
             this._dataContext.__queueImplicitCommit();
         },
 
-        _updateEntityState: function (id, state, error, entity) {
+        _updateEntityState: function(id, state, error, entity) {
             /// <param name="errors" optional="true"></param>
             /// <param name="entity" optional="true"></param>
 
-            entity = entity || this._getEntityFromId(id);  // Notifying after a purge requires that we pass the entity for id.
+            entity = entity || this._getEntityFromId(id); // Notifying after a purge requires that we pass the entity for id.
 
             var oldState = this._entityStates[id];
-            if (this._entityStates[id]) {  // We'll purge the entity before raising "Deleted".
+            if (this._entityStates[id]) { // We'll purge the entity before raising "Deleted".
                 this._entityStates[id] = state;
                 if (oldState !== state) {
                     // TODO: The change event for EntityState won't be deferred here, like it is for _raiseEntityStateChangedEvent.
@@ -1691,7 +1683,7 @@
         // |  X  |  /  | add new to _errors       |
         // |  /  |  /  | replace old with new     | 
         // ----------------------------------------
-        _updateEntityError: function (entity, newError) {
+        _updateEntityError: function(entity, newError) {
             var trackingId = this._getTrackingId(entity),
                 tracking = this._tracked[trackingId],
                 changed;
@@ -1720,9 +1712,9 @@
             return changed;
         },
 
-        _purgeEntityAtIndex: function (indexToPurge) {
+        _purgeEntityAtIndex: function(indexToPurge) {
             var entityToPurge = this._serverEntities[indexToPurge].entity,
-            idToPurge = this.getEntityId(entityToPurge);
+                idToPurge = this.getEntityId(entityToPurge);
 
             // Remove our observable extensions from the entity being purged.
             this._removeTracking([entityToPurge]);
@@ -1734,19 +1726,19 @@
             this._disposeAssociationEntitiesViews(idToPurge);
 
             if (this._getAddedEntityFromId(idToPurge)) {
-                this._addedEntities = $.grep(this._addedEntities, function (entity) { return entity.clientId !== idToPurge; });
+                this._addedEntities = $.grep(this._addedEntities, function(entity) { return entity.clientId !== idToPurge; });
             }
 
             // TODO -- Have a specific event for entities leaving the cache?
         },
 
-        _getEntityIdentity: function (entity) {
+        _getEntityIdentity: function(entity) {
             return upshot.EntitySet.__getIdentity(entity, this._entityType);
         },
 
-        _getEntityIndexFromId: function (id) {
+        _getEntityIndexFromId: function(id) {
             var addedEntity = this._getAddedEntityFromId(id),
-            idToFind;
+                idToFind;
             if (!addedEntity) {
                 idToFind = id;
             } else if (addedEntity.serverId === undefined) {
@@ -1766,7 +1758,7 @@
             return index;
         },
 
-        _getEntityIndexFromIdentity: function (id) {
+        _getEntityIndexFromIdentity: function(id) {
             var index = -1;
             for (var i = 0; i < this._serverEntities.length; i++) {
                 if (this._serverEntities[i].identity === id) {
@@ -1778,7 +1770,7 @@
             return index;
         },
 
-        _getEntityIndex: function (entity) {
+        _getEntityIndex: function(entity) {
             var index = -1;
             for (var i = 0; i < this._serverEntities.length; i++) {
                 if (this._serverEntities[i].entity === entity) {
@@ -1791,18 +1783,18 @@
         },
 
         // This will get client-side identity (if has changed, use the original value).
-        _getClientEntityIdentity: function (entity) {
+        _getClientEntityIdentity: function(entity) {
             return this._getEntityIdentity(this.hasChanges(entity) ? this._getOriginalValue(entity, this._entityType) : entity);
         },
 
-        _addTracking: function (objects, type, parent, property) {
+        _addTracking: function(objects, type, parent, property) {
             var self = this;
-            $.each(objects, function (index, value) {
+            $.each(objects, function(index, value) {
                 self._addTrackingRecursive(parent, property, value, type);
             });
         },
 
-        _addTrackingRecursive: function (parent, property, obj, type) {
+        _addTrackingRecursive: function(parent, property, obj, type) {
             if (upshot.isArray(obj) || upshot.isObject(obj)) {
                 var tracking = this._getTracking(obj);
                 if (tracking) {
@@ -1811,7 +1803,7 @@
                     }
                 } else {
                     var trackingId = upshot.cache(obj, "trackingId", upshot.uniqueId("tracking"));
-                    tracking = this._tracked[trackingId] = {};
+                    tracking = this._tracked[trackingId] = { };
                 }
 
                 tracking.obj = obj;
@@ -1826,38 +1818,38 @@
                 if (upshot.isArray(obj)) {
                     // Primitive values don't get mapped.  Avoid iteration over the potentially large array.
                     // TODO: This precludes heterogeneous arrays.  Should we test for primitive element type here instead?
-                    if(obj.length > 0 && (upshot.isArray(obj[0]) || upshot.isObject(obj[0]))) {
+                    if (obj.length > 0 && (upshot.isArray(obj[0]) || upshot.isObject(obj[0]))) {
                         // Since we're recursing through the entity, we won't need to use asArray on collection-typed properties
                         var self = this;
-                        $.each(obj, function (index, value) {
+                        $.each(obj, function(index, value) {
                             self._addTrackingRecursive(obj, index, value, type);
                         });
                     }
                 } else {
                     var self = this;
-                    $.each(upshot.metadata.getProperties(obj, type), function (index, prop) {
+                    $.each(upshot.metadata.getProperties(obj, type), function(index, prop) {
                         self._addTrackingRecursive(obj, prop.name, obs.getProperty(obj, prop.name), prop.type);
                     });
                 }
             }
         },
 
-        _getTracker: function () {
+        _getTracker: function() {
             if (this._tracker === null) {
                 var self = this;
                 this._tracker = {
-                    beforeChange: function (target, type, eventArguments) {
+                    beforeChange: function(target, type, eventArguments) {
                         if (!self._isAssociationPropertySet(target, type, eventArguments)) {
                             self._copyOnWrite(target, eventArguments);
                             self._removeTracking(self._getOldFromEvent(type, eventArguments));
                         }
                     },
-                    afterChange: function (target, type, eventArguments) {
+                    afterChange: function(target, type, eventArguments) {
                         upshot.__beginChange();
                         if (!self._handleAssociationPropertySet(target, type, eventArguments)) {
                             var tracking = self._getTracking(target);
                             if (type === "change") {
-                                $.each(eventArguments.newValues, function (key, value) {
+                                $.each(eventArguments.newValues, function(key, value) {
                                     self._addTracking([value], upshot.metadata.getPropertyType(tracking.type, key), target, key);
                                 });
                             } else {
@@ -1866,7 +1858,7 @@
                             self._bubbleChange(target, null, eventArguments);
                         }
                     },
-                    afterEvent: function (target, type, eventArguments) {
+                    afterEvent: function(target, type, eventArguments) {
                         upshot.__endChange();
                     }
                 };
@@ -1877,9 +1869,9 @@
             return this._tracker;
         },
 
-        _isAssociationPropertySet: function (target, type, eventArguments) {
+        _isAssociationPropertySet: function(target, type, eventArguments) {
             if (type === "change" && this._dataContext.__manageAssociations && this._getTracking(target).parentId === null) {
-                var fieldsMetadata = (upshot.metadata(this._entityType) || {}).fields;
+                var fieldsMetadata = (upshot.metadata(this._entityType) || { }).fields;
                 if (fieldsMetadata) {
                     for (var fieldName in fieldsMetadata) {
                         var fieldMetadata = fieldsMetadata[fieldName];
@@ -1901,7 +1893,7 @@
             return false;
         },
 
-        _handleAssociationPropertySet: function (target, type, eventArguments) {
+        _handleAssociationPropertySet: function(target, type, eventArguments) {
             if (!this._isAssociationPropertySet(target, type, eventArguments)) {
                 return false;
             }
@@ -1932,14 +1924,14 @@
             return true;
         },
 
-        _removeTracking: function (objects) {
+        _removeTracking: function(objects) {
             var self = this;
-            $.each(objects, function (index, value) {
+            $.each(objects, function(index, value) {
                 self._removeTrackingRecursive(value);
             });
         },
 
-        _removeTrackingRecursive: function (obj) {
+        _removeTrackingRecursive: function(obj) {
             if (upshot.isArray(obj) || upshot.isObject(obj)) {
                 var tracking = this._getTracking(obj);
                 if (tracking) {
@@ -1954,15 +1946,15 @@
                     if (upshot.isArray(obj)) {
                         // Primitive values don't get mapped.  Avoid iteration over the potentially large array.
                         // TODO: This precludes heterogeneous arrays.  Should we test for primitive element type here instead? 
-                        if(obj.length > 0 && (upshot.isArray(obj[0]) || upshot.isObject(obj[0]))) {
+                        if (obj.length > 0 && (upshot.isArray(obj[0]) || upshot.isObject(obj[0]))) {
                             var self = this;
-                            $.each(obj, function (index, value) {
+                            $.each(obj, function(index, value) {
                                 self._removeTrackingRecursive(value);
                             });
                         }
                     } else {
                         var self = this;
-                        $.each(obj, function (key) {
+                        $.each(obj, function(key) {
                             self._removeTrackingRecursive(obs.getProperty(obj, key));
                         });
                     }
@@ -1970,7 +1962,7 @@
             }
         },
 
-        _deleteTracking: function (obj) {
+        _deleteTracking: function(obj) {
             var trackingId = this._getTrackingId(obj);
 
             upshot.deleteCache(obj, "trackingId");
@@ -1978,11 +1970,11 @@
             delete this._tracked[trackingId];
         },
 
-        _getOldFromEvent: function (type, eventArguments) {
+        _getOldFromEvent: function(type, eventArguments) {
             if (type === "change") {
                 // TODO -- add test coverage for N-property updates
                 var old = [];
-                $.each(eventArguments.oldValues, function (key, value) {
+                $.each(eventArguments.oldValues, function(key, value) {
                     old.push(value);
                 });
                 return old;
@@ -1996,11 +1988,11 @@
             return [];
         },
 
-        _getNewFromEvent: function (type, eventArguments) {
+        _getNewFromEvent: function(type, eventArguments) {
             if (type === "change") {
                 // TODO -- add test coverage for N-property updates
                 var _new = [];
-                $.each(eventArguments.newValues, function (key, value) {
+                $.each(eventArguments.newValues, function(key, value) {
                     _new.push(value);
                 });
                 return _new;
@@ -2014,21 +2006,21 @@
             return [];
         },
 
-        _getTrackingId: function (obj) {
+        _getTrackingId: function(obj) {
             return upshot.cache(obj, "trackingId");
         },
 
-        _getTracking: function (obj) {
+        _getTracking: function(obj) {
             var trackingId = this._getTrackingId(obj);
             return trackingId ? this._tracked[trackingId] : null;
         },
 
-        _getChanges: function (obj) {
+        _getChanges: function(obj) {
             var tracking = this._getTracking(obj);
             return tracking ? this._getTracking(obj).changes : null;
         },
 
-        _bubbleChange: function (obj, child, eventArguments) {
+        _bubbleChange: function(obj, child, eventArguments) {
             var parentId = this._getTracking(obj).parentId;
 
             if (child) {
@@ -2048,7 +2040,7 @@
             this._triggerEvent("change", obj, true);
         },
 
-        _copyOnWrite: function (obj, eventArguments) {
+        _copyOnWrite: function(obj, eventArguments) {
             if (upshot.isArray(obj)) {
                 this._recordWriteToArray(obj);
             } else {
@@ -2056,57 +2048,57 @@
             }
         },
 
-        _recordWriteToArray: function (array) {
+        _recordWriteToArray: function(array) {
             var tracking = this._getTracking(array),
                 changes = tracking.changes || (tracking.changes = {
                     original: null,
-                    children: {}
+                    children: { }
                 });
 
             changes.original || (changes.original = array.slice(0));
         },
 
-        _recordWriteToObject: function (obj, oldValues) {
+        _recordWriteToObject: function(obj, oldValues) {
             var tracking = this._getTracking(obj),
                 changes = tracking.changes || (tracking.changes = {
-                    original: {},
-                    children: {}
+                    original: { },
+                    children: { }
                 });
 
-            $.each(oldValues, function (key, value) {
+            $.each(oldValues, function(key, value) {
                 changes.original.hasOwnProperty(key) || (changes.original[key] = value);
             });
         },
 
-        _recordChangedChild: function (obj, child) {
+        _recordChangedChild: function(obj, child) {
             upshot.isArray(obj) ?
                 this._recordChangedChildOfArray(obj, child) :
                 this._recordChangedChildOfObject(obj, child);
         },
 
-        _recordChangedChildOfArray: function (array, child) {
+        _recordChangedChildOfArray: function(array, child) {
             var tracking = this._getTracking(array),
                 changes = tracking.changes || (tracking.changes = {
                     original: null,
-                    children: {}
+                    children: { }
                 }),
                 childId = this._getTrackingId(child);
 
             changes.children[childId] = childId;
         },
 
-        _recordChangedChildOfObject: function (obj, child) {
+        _recordChangedChildOfObject: function(obj, child) {
             var tracking = this._getTracking(obj),
                 changes = tracking.changes || (tracking.changes = {
-                    original: {},
-                    children: {}
+                    original: { },
+                    children: { }
                 }),
                 childId = this._getTrackingId(child);
 
             changes.children[childId] = childId;
         },
 
-        _clearChanges: function (obj) {
+        _clearChanges: function(obj) {
             var tracking = this._getTracking(obj),
                 changes = tracking.changes;
 
@@ -2117,13 +2109,13 @@
                 }
                 this._triggerEvent("change", obj, false);
                 var self = this;
-                $.each(changes.children, function (key, value) {
+                $.each(changes.children, function(key, value) {
                     self._clearChanges(self._tracked[value].obj);
                 });
             }
         },
 
-        _getOriginalValue: function (obj, type, property) {
+        _getOriginalValue: function(obj, type, property) {
             if (upshot.isArray(obj) && property) {
                 throw "property is not a supported parameter when getting original array values";
             }
@@ -2138,13 +2130,13 @@
                     upshot.metadata.getPropertyType(type, property));
             } else if (upshot.isArray(obj)) {
                 original = (changes ? changes.original || obj : obj).slice(0);
-                $.each(original, function (index, value) {
+                $.each(original, function(index, value) {
                     original[index] = self._getOriginalValue(value, type);
                 });
                 return original;
             } else if (upshot.isObject(obj)) {
-                original = {};
-                $.each(upshot.metadata.getProperties(obj, type), function (index, prop) {
+                original = { };
+                $.each(upshot.metadata.getProperties(obj, type), function(index, prop) {
                     var value = changes && changes.original && changes.original.hasOwnProperty(prop.name) ? changes.original[prop.name] : obs.getProperty(obj, prop.name);
                     original[prop.name] = self._getOriginalValue(value, prop.type);
                 });
@@ -2153,7 +2145,7 @@
             return obj;
         },
 
-        _restoreOriginalValues: function (obj, type, property) {
+        _restoreOriginalValues: function(obj, type, property) {
             if (upshot.isArray(obj) && property) {
                 throw "property is not a supported parameter when restoring array values";
             }
@@ -2173,7 +2165,7 @@
                     // TODO: Review.  Do we want revertChange(entity, propertyName) to be deep by default?  Opt-in?
                     // Do we not want a more general revertChange(obj, propertyName)?
                     // Will there be multiple children for a given propertyName (some detached/inactive)?
-                    $.each(changes.children, function (key, value) {
+                    $.each(changes.children, function(key, value) {
                         var tracking = self._tracked[value];
                         if (tracking.property === property) {
                             self._restoreOriginalValues(tracking.obj, tracking.type, null);
@@ -2187,9 +2179,9 @@
                     } else {
                         // Develop stable keys so we can GC from changes.original as we restore.
                         var keys = [];
-                        $.each(changes.original, function (key) { keys.push(key); });
+                        $.each(changes.original, function(key) { keys.push(key); });
 
-                        $.each(keys, function (index, key) {
+                        $.each(keys, function(index, key) {
                             var value = changes.original[key];
                             // Delete this before _setProperty, so isPropertyChanged/hasChanges is accurate during 
                             // property changed callbacks.
@@ -2198,7 +2190,7 @@
                         });
                     }
 
-                    $.each(changes.children, function (key, value) {
+                    $.each(changes.children, function(key, value) {
                         var tracking = self._tracked[value];
                         self._restoreOriginalValues(tracking.obj, tracking.type, null);
                     });
@@ -2208,7 +2200,7 @@
             }
         },
 
-        _merge: function (entity, _new) {
+        _merge: function(entity, _new) {
             if (!this.hasChanges(entity)) {
                 // Only merge entities without changes
                 this._mergeObject(entity, _new, this._entityType);
@@ -2216,7 +2208,7 @@
             return entity;
         },
 
-        _mergeObject: function (obj, _new, type) {
+        _mergeObject: function(obj, _new, type) {
             ///#DEBUG
             // TODO: For unmanaged associations, we'll need to descend into associations below to
             // pick up child association membership changes and parent association value changes.
@@ -2224,7 +2216,7 @@
             ///#ENDDEBUG
 
             var self = this;
-            $.each(upshot.metadata.getProperties(_new, type, false /* see TODO above */), function (index, prop) {
+            $.each(upshot.metadata.getProperties(_new, type, false /* see TODO above */), function(index, prop) {
                 var oldValue = obs.getProperty(obj, prop.name),
                     value = obs.getProperty(_new, prop.name);
                 if (oldValue !== value) {
@@ -2246,9 +2238,9 @@
             });
         },
 
-        _mergeArray: function (array, _new, type) {
+        _mergeArray: function(array, _new, type) {
             var self = this;
-            $.each(_new, function (index, value) {
+            $.each(_new, function(index, value) {
                 var oldValue = array[index];
                 if (oldValue) {
                     self._mergeObject(oldValue, value, type);
@@ -2263,7 +2255,7 @@
 
         // NOTE: "Internal" suffix disambiguates _handleArrayChangeInternal/_handlePropertyChangeInternal
         // from base class _handleArrayChange method.
-        _handlePropertyChangeInternal: function (entity, eventArguments, raisePropertyChanged) {
+        _handlePropertyChangeInternal: function(entity, eventArguments, raisePropertyChanged) {
             // TODO, suwatch: to support N properties
             var path, value;
             for (var propertyName in eventArguments.newValues) {
@@ -2291,15 +2283,15 @@
 
         // NOTE: "Internal" suffix disambiguates _handleArrayChangeInternal/_handlePropertyChangeInternal
         // from base class _handleArrayChange method.
-        _handleArrayChangeInternal: function (entity) {
+        _handleArrayChangeInternal: function(entity) {
             this._changeEntityStateForUpdate(entity);
         },
 
-        _setProperty: function (obj, type, key, value) {
+        _setProperty: function(obj, type, key, value) {
             var parentId = this._getTracking(obj).parentId;
 
             this._removeTracking([obs.getProperty(obj, key)]);
-            obs.setProperty(obj, key, value);  // TODO: Shouldn't we be _addTracking before obs.setProperty, so we won't be reentered in a inconsistent state?
+            obs.setProperty(obj, key, value); // TODO: Shouldn't we be _addTracking before obs.setProperty, so we won't be reentered in a inconsistent state?
             this._addTracking([value], upshot.metadata.getPropertyType(type, key), obj, key);
             if (parentId === null) {
                 // Only raise "propertyChanged" for entity-level property changes.
@@ -2309,71 +2301,69 @@
             // TODO: Why doesn't this "change" bubble like tracked changes ones?
         },
 
-        _arrayRefresh: function (array, type, values) {
+        _arrayRefresh: function(array, type, values) {
             this._removeTracking(array);
             obs.refresh(array, values);
             this._addTracking(array, type, array);
         },
 
-        _arrayRemove: function (array, type, index, numToRemove) {
+        _arrayRemove: function(array, type, index, numToRemove) {
             this._removeTracking(array.slice(index, numToRemove));
             obs.remove(array, index, numToRemove);
         },
 
-        _arrayInsert: function (array, type, index, items) {
+        _arrayInsert: function(array, type, index, items) {
             obs.insert(array, index, items);
             this._addTracking(items, type, array);
         },
 
-        _getAddedEntityFromId: function (id) {
-            var addedEntities = $.grep(this._addedEntities, function (addedEntity) { return addedEntity.clientId === id; });
+        _getAddedEntityFromId: function(id) {
+            var addedEntities = $.grep(this._addedEntities, function(addedEntity) { return addedEntity.clientId === id; });
             ///#DEBUG
             upshot.assert(addedEntities.length <= 1);
             ///#ENDDEBUG
             return addedEntities[0];
         },
 
-        _getAddedEntityFromEntity: function (entity) {
-            var addedEntities = $.grep(this._addedEntities, function (addedEntity) { return addedEntity.entity === entity; });
+        _getAddedEntityFromEntity: function(entity) {
+            var addedEntities = $.grep(this._addedEntities, function(addedEntity) { return addedEntity.entity === entity; });
             ///#DEBUG
             upshot.assert(addedEntities.length <= 1);
             ///#ENDDEBUG
             return addedEntities[0];
         },
 
-        _handleSubmitSucceeded: function (id, operation, result) {
-            var entity = this._getEntityFromId(id);  // ...before we purge.
+        _handleSubmitSucceeded: function(id, operation, result) {
+            var entity = this._getEntityFromId(id); // ...before we purge.
 
             switch (operation.Operation) {
-                case 2:
+            case 2:
                     // Do this before the model change, so listeners on data change events see consistent entity state.
-                    this._updateEntityState(id, upshot.EntityState.Unmodified);
+                this._updateEntityState(id, upshot.EntityState.Unmodified);
 
                     // Keep entity in addedEntities to maintain its synthetic id as the client-known id.
-                    var addedEntity = this._getAddedEntityFromId(id);
-                    var identity = this._getEntityIdentity(result.Entity);
-                    addedEntity.serverId = identity;
+                var addedEntity = this._getAddedEntityFromId(id);
+                var identity = this._getEntityIdentity(result.Entity);
+                addedEntity.serverId = identity;
 
-                    this._serverEntities.push({ entity: addedEntity.entity, identity: identity });
-                    this._clearChanges(addedEntity.entity);
-                    this._merge(addedEntity.entity, result.Entity);
-                    break;
-
-                case 3:
+                this._serverEntities.push({ entity: addedEntity.entity, identity: identity });
+                this._clearChanges(addedEntity.entity);
+                this._merge(addedEntity.entity, result.Entity);
+                break;
+            case 3:
                     // Do this before the model change, so listeners on data change events see consistent entity state.
-                    this._updateEntityState(id, upshot.EntityState.Unmodified);
+                this._updateEntityState(id, upshot.EntityState.Unmodified);
 
-                    this._clearChanges(entity);
-                    this._merge(entity, result.Entity);
-                    break;
-
-                case 4:
+                this._clearChanges(entity);
+                this._merge(entity, result.Entity);
+                break;
+            case 4:
                     // Do this before the model change, so listeners on data change events see consistent entity state.
-                    this._updateEntityState(id, upshot.EntityState.Deleted, null, entity);
+                this._updateEntityState(id, upshot.EntityState.Deleted, null, entity);
 
-                    var indexToPurge = this._getEntityIndexFromId(id);
-                    this._purgeEntityAtIndex(indexToPurge, true);
-                    break;
+                var indexToPurge = this._getEntityIndexFromId(id);
+                this._purgeEntityAtIndex(indexToPurge, true);
+                break;
             }
 
             ///#DEBUG
@@ -2381,20 +2371,26 @@
             ///#ENDDEBUG
         },
 
-        _handleSubmitFailed: function (id, operation, error) {
+        _handleSubmitFailed: function(id, operation, error) {
             var entity = this._getEntityFromId(id);
 
             var state;
             switch (operation.Operation) {
-                case 2: state = upshot.EntityState.ClientAdded; break;
-                case 3: state = upshot.EntityState.ClientUpdated; break;
-                case 4: state = upshot.EntityState.ClientDeleted; break;
+            case 2:
+                state = upshot.EntityState.ClientAdded;
+                break;
+            case 3:
+                state = upshot.EntityState.ClientUpdated;
+                break;
+            case 4:
+                state = upshot.EntityState.ClientDeleted;
+                break;
             }
 
             this._updateEntityState(id, state, error);
         },
 
-        _purgeUncommittedAddedEntity: function (addedEntityBeingPurged) {
+        _purgeUncommittedAddedEntity: function(addedEntityBeingPurged) {
             var id = addedEntityBeingPurged.clientId,
                 entity = addedEntityBeingPurged.entity;
 
@@ -2403,13 +2399,13 @@
 
             // Remove our observable extensions from the entity being purged.
             this._removeTracking([entity]);
-            this._addedEntities = $.grep(this._addedEntities, function (addedEntity) { return addedEntity !== addedEntityBeingPurged; });
+            this._addedEntities = $.grep(this._addedEntities, function(addedEntity) { return addedEntity !== addedEntityBeingPurged; });
             delete this._entityStates[id];
             this._disposeAssociationEntitiesViews(id);
             this._purgeEntity(entity);
         },
 
-        _getEntityFromId: function (id) {
+        _getEntityFromId: function(id) {
             // Similar logic as _getEntityIndexFromId
             var addedEntity = this._getAddedEntityFromId(id),
                 idToFind;
@@ -2428,21 +2424,21 @@
             }
         },
 
-        _addAssociationProperties: function (entity) {
+        _addAssociationProperties: function(entity) {
             if (!this._dataContext.__manageAssociations) {
                 return;
             }
 
-            var fieldsMetadata = (upshot.metadata(this._entityType) || {}).fields;
+            var fieldsMetadata = (upshot.metadata(this._entityType) || { }).fields;
             if (fieldsMetadata) {
                 var id = this.getEntityId(entity);
                 ///#DEBUG
                 upshot.assert(id !== null && id in this._entityStates, "Entity should be cached in data context.");
                 ///#ENDDEBUG
 
-                var associatedEntitiesViews = this._associatedEntitiesViews[id] = {},
+                var associatedEntitiesViews = this._associatedEntitiesViews[id] = { },
                     self = this;
-                $.each(fieldsMetadata, function (fieldName, fieldMetadata) {
+                $.each(fieldsMetadata, function(fieldName, fieldMetadata) {
                     if (fieldMetadata.association) {
                         if (associatedEntitiesViews[fieldName]) {
                             throw "Duplicate property metadata for property '" + fieldName + "'.";
@@ -2453,7 +2449,7 @@
             }
         },
 
-        _createAssociatedEntitiesView: function (entity, fieldName, fieldMetadata) {
+        _createAssociatedEntitiesView: function(entity, fieldName, fieldMetadata) {
             if (!fieldMetadata.association.isForeignKey && !fieldMetadata.array) {
                 // TODO -- Singleton child entities?
                 throw "NYI: Singleton child entities are not currently supported";
@@ -2461,9 +2457,9 @@
 
             var targetEntitySet = this._dataContext.getEntitySet(fieldMetadata.type),
                 isForeignKey = fieldMetadata.association.isForeignKey,
-                parentPropertySetter = isForeignKey ? function () {  // AssociatedEntitiesView for a parent property needs a function to do the property set.
+                parentPropertySetter = isForeignKey ? function() { // AssociatedEntitiesView for a parent property needs a function to do the property set.
                     var oldParent = obs.getProperty(entity, fieldName),
-                    newParent = obs.asArray(this.getEntities())[0] || null;  // TODO: What if there are N>1 parent entities?
+                        newParent = obs.asArray(this.getEntities())[0] || null; // TODO: What if there are N>1 parent entities?
                     if (oldParent !== newParent) {
                         // TODO: For KO, this won't be an observable set if KO's map didn't already establish a observable property here.  Is this ok?
                         obs.setProperty(entity, fieldName, newParent);
@@ -2487,23 +2483,23 @@
             return new upshot.AssociatedEntitiesView(entity, parentEntitySet, childEntitySet, fieldMetadata.association, parentPropertySetter, result);
         },
 
-        _disposeAssociationEntitiesViews: function (id) {
+        _disposeAssociationEntitiesViews: function(id) {
             var associatedEntitiesViews = this._associatedEntitiesViews[id];
             if (associatedEntitiesViews) {
-                $.each(associatedEntitiesViews, function (unused, associatedEntitiesView) {
+                $.each(associatedEntitiesViews, function(unused, associatedEntitiesView) {
                     associatedEntitiesView.dispose();
                 });
             }
             delete this._associatedEntitiesViews[id];
         },
 
-        _getSerializableEntity: function (entity) {
+        _getSerializableEntity: function(entity) {
             if (!this._dataContext.__manageAssociations) {
                 return entity;
             }
 
-            var sanitizedEntity = {};
-            $.each(upshot.metadata.getProperties(entity, this._entityType), function (index, property) {
+            var sanitizedEntity = { };
+            $.each(upshot.metadata.getProperties(entity, this._entityType), function(index, property) {
                 sanitizedEntity[property.name] = entity[property.name];
             });
             return sanitizedEntity;
@@ -2511,7 +2507,7 @@
     };
 
     var classMembers = {
-        __getIdentity: function (entity, entityType) {
+        __getIdentity: function(entity, entityType) {
             // Produce a unique identity string for the given entity, based on simple
             // concatenation of key values.
             var metadata = upshot.metadata(entityType);
@@ -2531,15 +2527,15 @@
             }
 
             var identity = "";
-            $.each(keys, function (index, key) {
+            $.each(keys, function(index, key) {
                 if (identity.length > 0) {
                     identity += ",";
                 }
 
                 // support dotted paths
-                var parts = key.split(".")
+                var parts = key.split(".");
                 var value = entity;
-                $.each(parts, function (index, part) {
+                $.each(parts, function(index, part) {
                     upshot.EntitySet.__validateKeyMember(part, key, value, entityType);
                     value = obs.getProperty(value, part);
                 });
@@ -2549,7 +2545,7 @@
             return identity;
         },
 
-        __validateKeyMember: function (keyMember, fullKey, entity, entityType) {
+        __validateKeyMember: function(keyMember, fullKey, entity, entityType) {
             if (!entity || !(keyMember in entity)) {
                 throw "Key member '" + fullKey + "' doesn't exist on entity type '" + entityType + "'";
             }
@@ -2566,11 +2562,10 @@
 /// DataContext.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var obs = upshot.observability;
 
-    var ctor = function (dataProvider, implicitCommitHandler, mappings) {
+    var ctor = function(dataProvider, implicitCommitHandler, mappings) {
 
         // support no new ctor
         if (this._trigger === undefined) {
@@ -2578,13 +2573,13 @@
         }
 
         this._dataProvider = dataProvider;
-        this.__manageAssociations = true;  // TODO: Make this configurable by the app.  Fix unmanaged associations.
+        this.__manageAssociations = true; // TODO: Make this configurable by the app.  Fix unmanaged associations.
         this._implicitCommitHandler = implicitCommitHandler;
 
-        this._eventCallbacks = {};
-        this._entitySets = {};
+        this._eventCallbacks = { };
+        this._entitySets = { };
 
-        this._mappings = {};
+        this._mappings = { };
         if (mappings) {
             this.addMapping(mappings);
         }
@@ -2595,7 +2590,7 @@
         if (parameters) {
             // first include any explicit get/submit
             // param properties
-            result = $.extend(result, parameters[type] || {});
+            result = $.extend(result, parameters[type] || { });
 
             // next, add any additional "outer" properties
             for (var prop in parameters) {
@@ -2608,16 +2603,15 @@
     }
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
-
-        dispose: function () {
+        dispose: function() {
             /// <summary>
             /// Disposes the DataContext instance.
             /// </summary>
 
-            if (this._entitySets) {  // Use _entitySets as an indicator as to whether we've been disposed.
-                $.each(this._entitySets, function (index, entitySet) {
+            if (this._entitySets) { // Use _entitySets as an indicator as to whether we've been disposed.
+                $.each(this._entitySets, function(index, entitySet) {
                     entitySet.__dispose();
                 });
                 this._entitySets = null;
@@ -2625,7 +2619,7 @@
         },
 
         // TODO: bind/unbind/_trigger are duplicated in EntitySource and DataContext, consider common routine.
-        bind: function (event, callback) {
+        bind: function(event, callback) {
             /// <summary>
             /// Registers the supplied callback to be called when an event is raised.
             /// </summary>
@@ -2648,7 +2642,7 @@
             return this;
         },
 
-        unbind: function (event, callback) {
+        unbind: function(event, callback) {
             /// <summary>
             /// Deregisters the supplied callback for the supplied event.
             /// </summary>
@@ -2678,19 +2672,19 @@
             return this;
         },
 
-        addMapping: function (entityType, mapping) {  // TODO: Should we support CTs here too?  Or take steps to disallow?
+        addMapping: function(entityType, mapping) { // TODO: Should we support CTs here too?  Or take steps to disallow?
             // TODO: Need doc comments.
 
             if (typeof entityType === "string") {
                 var mappingT = mapping;
-                mapping = {};
+                mapping = { };
                 mapping[entityType] = mappingT;
             } else {
                 mapping = entityType;
             }
 
             var self = this;
-            $.each(mapping, function (entityType, mapping) {
+            $.each(mapping, function(entityType, mapping) {
                 if ($.isFunction(mapping)) {
                     mapping = { map: mapping };
                 }
@@ -2708,7 +2702,7 @@
             });
         },
 
-        getEntitySet: function (entityType) {
+        getEntitySet: function(entityType) {
             /// <summary>
             /// Returns the EntitySet for the supplied type.
             /// </summary>
@@ -2722,21 +2716,21 @@
             return entitySet;
         },
 
-        getEntityErrors: function () {
+        getEntityErrors: function() {
             /// <summary>
             /// Returns an array of server errors by entity, of the form [ &#123; entity: &#60;entity&#62;, error: &#60;object&#62; &#125;, ... ].
             /// </summary>
             /// <returns type="Array"/>
 
             var errors = [];
-            $.each(this._entitySets, function (type, entitySet) {
+            $.each(this._entitySets, function(type, entitySet) {
                 var spliceArguments = [errors.length, 0].concat(entitySet.getEntityErrors());
-                [ ].splice.apply(errors, spliceArguments);
+                [].splice.apply(errors, spliceArguments);
             });
             return errors;
         },
 
-        getEntityError: function (entity) {
+        getEntityError: function(entity) {
             /// <summary>
             /// Returns server errors for the supplied entity.
             /// </summary>
@@ -2748,14 +2742,14 @@
             var error;
             // TODO: we should get related-entitySet for an entity, then getEntityError.
             // this will need type rationalization across all providers.
-            $.each(this._entitySets, function (unused, entitySet) {
+            $.each(this._entitySets, function(unused, entitySet) {
                 error = entitySet.getEntityError(entity);
                 return !error;
             });
             return error;
         },
 
-        commitChanges: function (options, success, error) {
+        commitChanges: function(options, success, error) {
             /// <summary>
             /// Initiates an asynchronous commit of any model data edits collected by this DataContext.
             /// </summary>
@@ -2774,20 +2768,20 @@
             return this;
         },
 
-        revertChanges: function () {
+        revertChanges: function() {
             /// <summary>
             /// Reverts any edits to model data (to entities) back to original entity values.
             /// </summary>
             /// <returns type="upshot.DataContext"/>
 
-            $.each(this._entitySets, function (type, entitySet) {
+            $.each(this._entitySets, function(type, entitySet) {
                 entitySet.__revertChanges();
             });
             upshot.__triggerRecompute();
             return this;
         },
 
-        merge: function (entities, type, includedEntities) {
+        merge: function(entities, type, includedEntities) {
             /// <summary>Merges data into the cache</summary>
             /// <param name="entities" type="Array">The array of entities to add or merge into the cache</param>
             /// <param name="type" type="String">The type of the entities to be merge into the cache. This parameter can be null/undefined when no entities are supplied</param>
@@ -2795,9 +2789,9 @@
             /// <returns type="Array">The array of entities with newly merged values</returns>
 
             var self = this;
-            includedEntities = includedEntities || {};
+            includedEntities = includedEntities || { };
 
-            $.each(entities, function (unused, entity) {
+            $.each(entities, function(unused, entity) {
                 // apply type info to the entity instances
                 // TODO: Do we want this to go through the compatibility layer?
                 obs.setProperty(entity, "__type", type);
@@ -2805,8 +2799,8 @@
                 self.__flatten(entity, type, includedEntities);
             });
 
-            $.each(includedEntities, function (type, entities) {
-                $.each(entities, function (unused, entity) {
+            $.each(includedEntities, function(type, entities) {
+                $.each(entities, function(unused, entity) {
                     // apply type info to the entity instances
                     // TODO: Do we want this to go through the compatibility layer?
                     obs.setProperty(entity, "__type", type);
@@ -2836,10 +2830,10 @@
 
         // recursively visit the specified entity and its associations, accumulating all
         // associated entities to the included entities collection
-        __flatten: function (entity, entityType, includedEntities) {
+        __flatten: function(entity, entityType, includedEntities) {
             var self = this;
 
-            $.each(upshot.metadata.getProperties(entity, entityType, true), function (index, prop) {
+            $.each(upshot.metadata.getProperties(entity, entityType, true), function(index, prop) {
                 var value = obs.getProperty(entity, prop.name);
                 if (value) {
                     if (prop.association) {
@@ -2847,12 +2841,12 @@
                             associatedEntityType = prop.type,
                             entities = includedEntities[associatedEntityType] || (includedEntities[associatedEntityType] = []);
 
-                        $.each(associatedEntities, function (inner_index, associatedEntity) {
+                        $.each(associatedEntities, function(inner_index, associatedEntity) {
                             // add the associated entity
                             var identity = upshot.EntitySet.__getIdentity(associatedEntity, associatedEntityType);
 
                             if (!entities.identityMap) {
-                                entities.identityMap = {};
+                                entities.identityMap = { };
                             }
                             if (!entities.identityMap[identity]) {
                                 // add the entity and recursively flatten it
@@ -2871,9 +2865,9 @@
             });
         },
 
-        __load: function (options, success, error) {
+        __load: function(options, success, error) {
 
-            $.each(this._entitySets, function (type, entitySet) {
+            $.each(this._entitySets, function(type, entitySet) {
                 if (entitySet.__hasUncommittedEdits()) {
                     throw "Load is not allowed while the data source contains uncommitted edits.";
                 }
@@ -2881,7 +2875,7 @@
 
             var dataProvider = this._dataProvider,
                 self = this,
-                onSuccess = function (result) {
+                onSuccess = function(result) {
                     // add metadata if specified
                     if (result.metadata) {
                         upshot.metadata(result.metadata);
@@ -2893,14 +2887,14 @@
                         throw "Unable to determine entity type.";
                     }
 
-                    var entities = $.map(result.entities, function (entity) {
+                    var entities = $.map(result.entities, function(entity) {
                         return self._mapEntity(entity, entityType);
                     });
                     var includedEntities;
                     if (result.includedEntities) {
-                        includedEntities = {};
-                        $.each(result.includedEntities, function (type, entities) {
-                            includedEntities[type] = $.map(entities, function (entity) {
+                        includedEntities = { };
+                        $.each(result.includedEntities, function(type, entities) {
+                            includedEntities[type] = $.map(entities, function(entity) {
                                 return self._mapEntity(entity, type);
                             });
                         });
@@ -2910,7 +2904,7 @@
 
                     success.call(self, self.getEntitySet(entityType), mergedEntities, result.totalCount);
                 },
-                onError = function (httpStatus, errorText, context) {
+                onError = function(httpStatus, errorText, context) {
                     error.call(self, httpStatus, errorText, context);
                 };
 
@@ -2919,7 +2913,7 @@
             dataProvider.get(getParameters, options.queryParameters, onSuccess, onError);
         },
 
-        __queueImplicitCommit: function () {
+        __queueImplicitCommit: function() {
             if (this._implicitCommitHandler) {
                 // when in implicit commit mode, we group all implicit commits within
                 // a single thread of execution by queueing a timer callback that expires
@@ -2928,7 +2922,7 @@
                     this._implicitCommitQueued = true;
 
                     var self = this;
-                    setTimeout(function () {
+                    setTimeout(function() {
                         self._implicitCommitQueued = false;
                         self._implicitCommitHandler();
                     }, 0);
@@ -2938,7 +2932,7 @@
 
         // Private methods
 
-        _trigger: function (eventType) {
+        _trigger: function(eventType) {
             var list = this._eventCallbacks[eventType];
             if (list) {
                 var args = Array.prototype.slice.call(arguments, 1);
@@ -2951,18 +2945,18 @@
             return this;
         },
 
-        _submitChanges: function (options, editedEntities, success, error) {
+        _submitChanges: function(options, editedEntities, success, error) {
 
             this._trigger("commitStart");
 
-            var edits = $.map(editedEntities, function (editedEntity) {
+            var edits = $.map(editedEntities, function(editedEntity) {
                 return editedEntity.entitySet.__getEntityEdit(editedEntity.entity);
             });
 
-            $.each(edits, function (index, edit) { edit.updateEntityState(); });
+            $.each(edits, function(index, edit) { edit.updateEntityState(); });
 
             var self = this;
-            var mapChange = function (entity, entityType, result) {
+            var mapChange = function(entity, entityType, result) {
                 var change = {
                     Id: result.Id,
                     Operation: result.Operation
@@ -2973,7 +2967,7 @@
                 return change;
             };
 
-            var unmapChange = function (index, entityType, operation) {
+            var unmapChange = function(index, entityType, operation) {
                 var change = {
                     Id: index.toString(),
                     Operation: operation.Operation,
@@ -2981,30 +2975,30 @@
                     OriginalEntity: operation.OriginalEntity
                 };
                 if (operation.Operation !== 4) { // Delete operations don't require unmapping
-                    var unmap = (self._mappings[entityType] || {}).unmap || obs.unmap;
+                    var unmap = (self._mappings[entityType] || { }).unmap || obs.unmap;
                     change.Entity = unmap(operation.Entity, entityType);
                 }
                 return change;
             };
 
-            var changeSet = $.map(edits, function (edit, index) {
+            var changeSet = $.map(edits, function(edit, index) {
                 return unmapChange(index, edit.entityType, edit.operation);
             });
 
-            var onSuccess = function (submitResult) {
-                    // all updates in the changeset where successful
-                    $.each(edits, function (index, edit) {
-                        edit.succeeded(mapChange(edit.storeEntity, edit.entityType, submitResult[index]));
-                    });
-                    upshot.__triggerRecompute();
-                    self._trigger("commitSuccess", submitResult);
-                    if (success) {
-                        success.call(self, submitResult);
-                    }
-                },
-                onError = function (httpStatus, errorText, context, submitResult) {
+            var onSuccess = function(submitResult) {
+                // all updates in the changeset where successful
+                $.each(edits, function(index, edit) {
+                    edit.succeeded(mapChange(edit.storeEntity, edit.entityType, submitResult[index]));
+                });
+                upshot.__triggerRecompute();
+                self._trigger("commitSuccess", submitResult);
+                if (success) {
+                    success.call(self, submitResult);
+                }
+            },
+                onError = function(httpStatus, errorText, context, submitResult) {
                     // one or more updates in the changeset failed
-                    $.each(edits, function (index, edit) {
+                    $.each(edits, function(index, edit) {
                         if (submitResult) {
                             // if a submitResult was provided, we use that data in the
                             // completion of the edit
@@ -3036,38 +3030,38 @@
             this._dataProvider.submit(submitParameters, changeSet, onSuccess, onError);
         },
 
-        _commitChanges: function (options, success, error) {
+        _commitChanges: function(options, success, error) {
             var editedEntities = [];
-            $.each(this._entitySets, function (type, entitySet) {
-                var entities = $.map(entitySet.__getEditedEntities(), function (entity) {
+            $.each(this._entitySets, function(type, entitySet) {
+                var entities = $.map(entitySet.__getEditedEntities(), function(entity) {
                     return { entitySet: entitySet, entity: entity };
                 });
-                [ ].push.apply(editedEntities, entities);
+                [].push.apply(editedEntities, entities);
             });
 
             this._submitChanges(options, editedEntities, success, error);
             upshot.__triggerRecompute();
         },
 
-        _mapEntity: function (data, entityType) {
+        _mapEntity: function(data, entityType) {
             return this._map(data, entityType, true);
         },
 
-        _map: function (data, entityType, isObject) {
+        _map: function(data, entityType, isObject) {
             if (isObject || upshot.isObject(data)) {
-                var map = (this._mappings[entityType] || {}).map;
+                var map = (this._mappings[entityType] || { }).map;
                 if (map) {
                     // Don't pass "entityType"/"mapNested" as we do below for obs.map.
                     // This would pollute the signature for app-supplied map functions (especially 
                     // when ctors are supplied).
-                    return new map(data);  // Use "new" here to allow ctors to be passed as map functions.
+                    return new map(data); // Use "new" here to allow ctors to be passed as map functions.
                 }
             }
 
             // The "map" function provided by the observability layer takes a function
             // to map nested objects, so we take advantage of app-supplied mapping functions.
             var self = this,
-                mapNested = function (data, entityType) {
+                mapNested = function(data, entityType) {
                     return self._map(data, entityType);
                 };
             return obs.map(data, entityType, mapNested);
@@ -3083,16 +3077,15 @@
 /// DataProvider.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
+
     function getQueryResult(getResult, wrappedResult) {
         var entities, totalCount;
 
         if (wrappedResult) {
             entities = getResult.Results;
             totalCount = getResult.TotalCount;
-        }
-        else {
+        } else {
             entities = getResult;
         }
 
@@ -3103,10 +3096,9 @@
     }
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
-
-        get: function (parameters, queryParameters, success, error) {
+        get: function(parameters, queryParameters, success, error) {
             /// <summary>
             /// Asynchronously gets data from the server using the specified parameters
             /// </summary>
@@ -3132,25 +3124,25 @@
             // set up the request parameters
             var url = upshot.DataProvider.normalizeUrl(parameters.url) + operation;
             var oDataQueryParams = upshot.ODataDataProvider.getODataQueryParameters(queryParameters);
-            var data = $.extend({}, operationParameters, oDataQueryParams);
+            var data = $.extend({ }, operationParameters, oDataQueryParams);
             var wrappedResult = oDataQueryParams.$inlinecount == "allpages";
 
             // invoke the query
             $.ajax({
                 url: url,
                 data: data,
-                success: success && function () {
+                success: success && function() {
                     arguments[0] = getQueryResult(arguments[0], wrappedResult);
                     success.apply(self, arguments);
                 },
-                error: error && function (jqXHR, statusText, errorText) {
+                error: error && function(jqXHR, statusText, errorText) {
                     error.call(self, jqXHR.status, self._parseErrorText(jqXHR.responseText) || errorText, jqXHR);
                 },
                 dataType: "json"
             });
         },
 
-        submit: function (parameters, changeSet, success, error) {
+        submit: function(parameters, changeSet, success, error) {
             /// <summary>
             /// Asynchronously submits the specified changeset
             /// </summary>
@@ -3160,18 +3152,22 @@
             /// <param name="error" type="Function">Optional error callback</param>
             /// <returns type="Promise">A Promise representing the result of the post operation</returns>
 
-            $.each(changeSet, function (index, changeSetEntry) {
+            $.each(changeSet, function(index, changeSetEntry) {
                 switch (changeSetEntry.Operation) {
-                    case 2: // insert
-                        changeSetEntry.Operation = 1;
-                        break;
-                    case 3: // update
-                        changeSetEntry.Operation = 2;
-                        break;
-                    case 4: // delete
-                        changeSetEntry.Operation = 3;
-                        break;
-                };
+                case 2:
+// insert
+                    changeSetEntry.Operation = 1;
+                    break;
+                case 3:
+// update
+                    changeSetEntry.Operation = 2;
+                    break;
+                case 4:
+// delete
+                    changeSetEntry.Operation = 3;
+                    break;
+                }
+                ;
             });
 
             var self = this,
@@ -3183,17 +3179,17 @@
                 data: encodedChangeSet,
                 dataType: "json",
                 type: "POST",
-                success: (success || error) && function (data, statusText, jqXHR) {
+                success: (success || error) && function(data, statusText, jqXHR) {
                     var result = data;
                     var hasErrors = false;
                     if (result) {
                         // transform to Error property
-                        $.each(result, function (index, changeSetEntry) {
+                        $.each(result, function(index, changeSetEntry) {
                             // even though upshot currently doesn't support reporting of concurrency conflicts,
                             // we must still identify such failures
-                            $.each(["ConflictMembers", "ValidationErrors", "IsDeleteConflict"], function (index, property) {
+                            $.each(["ConflictMembers", "ValidationErrors", "IsDeleteConflict"], function(index, property) {
                                 if (changeSetEntry.hasOwnProperty(property)) {
-                                    changeSetEntry.Error = changeSetEntry.Error || {};
+                                    changeSetEntry.Error = changeSetEntry.Error || { };
                                     changeSetEntry.Error[property] = changeSetEntry[property];
                                     hasErrors = true;
                                 }
@@ -3219,18 +3215,18 @@
                         error.call(self, jqXHR.status, errorText, jqXHR, result);
                     }
                 },
-                error: error && function (jqXHR, statusText, errorText) {
+                error: error && function(jqXHR, statusText, errorText) {
                     error.call(self, jqXHR.status, self._parseErrorText(jqXHR.responseText) || errorText, jqXHR);
                 }
             });
         },
 
-        _parseErrorText: function (responseText) {
-            var match = /Exception]: (.+)\r/g.exec(responseText);
+        _parseErrorText: function(responseText) {
+            var match = /Exception]: (.+)\r/g .exec(responseText);
             if (match && match[1]) {
                 return match[1];
             }
-            if (/^{.*}$/g.test(responseText)) {
+            if ( /^{.*}$/g .test(responseText)) {
                 var error = JSON.parse(responseText);
                 // TODO: error.Message returned by DataController
                 // Does ErrorMessage check still necessary?
@@ -3241,17 +3237,15 @@
                 }
             }
         }
-    }
-
+    };
     var classMembers = {
-        normalizeUrl: function (url) {
+        normalizeUrl: function(url) {
             if (url && url.substring(url.length - 1) !== "/") {
                 return url + "/";
             }
             return url;
         }
-    }
-
+    };
     upshot.DataProvider = upshot.defineClass(null, instanceMembers, classMembers);
 }
 )(this, jQuery, upshot);
@@ -3260,11 +3254,10 @@
 /// RemoteDataSource.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var base = upshot.DataSource.prototype;
 
-    var ctor = function (options) {
+    var ctor = function(options) {
         /// <summary>
         /// RemoteDataSource is used to load model data matching a query that is evaluated on the server.
         /// </summary>
@@ -3311,19 +3304,19 @@
 
             mapping = options.mapping;
             if (mapping &&
-                ($.isFunction(mapping) ||  // Mapping supplied as a "map" function.
-                 ($.isFunction(mapping.map) || $.isFunction(mapping.unmap)))) {  // Mapping supplied as map/unmap functions.
+                ($.isFunction(mapping) || // Mapping supplied as a "map" function.
+                    ($.isFunction(mapping.map) || $.isFunction(mapping.unmap)))) { // Mapping supplied as map/unmap functions.
 
                 if (!this._entityType) {
                     // TODO: Build out the no-type scenario where the DataSource supplies a mapping
                     // function and our merge algorithm ignores any typing from the DataProvider.
                     throw "Need 'entityType' option in order to supply " +
                         ($.isFunction(mapping) ? "a function" : "map/unmap functions") +
-                        " for 'mapping' option.";
+                            " for 'mapping' option.";
                 }
 
                 var mappingForType = mapping;
-                mapping = {};
+                mapping = { };
                 mapping[this._entityType] = mappingForType;
             }
         }
@@ -3334,9 +3327,9 @@
             if (!options.bufferChanges) {
                 // since we're not change tracking, define an implicit commit callback
                 // and pass into the DC
-                implicitCommitHandler = function () {
+                implicitCommitHandler = function() {
                     self._dataContext._commitChanges({ providerParameters: self._providerParameters });
-                }
+                };
             }
 
             dataContext = new upshot.DataContext(dataProvider, implicitCommitHandler, mapping);
@@ -3349,9 +3342,9 @@
         this._dataContext = dataContext;
 
         // define commit[Start,Success,Error] observers
-        var observer = {};
-        $.each(["commitStart", "commitSuccess", "commitError"], function (unused, name) {
-            observer[name] = function () {
+        var observer = { };
+        $.each(["commitStart", "commitSuccess", "commitError"], function(unused, name) {
+            observer[name] = function() {
                 self._trigger.apply(self, [name].concat(Array.prototype.slice.call(arguments)));
             };
         });
@@ -3361,17 +3354,17 @@
 
         var entitySource = options && options.entityType && this._dataContext.getEntitySet(options.entityType);
         if (entitySource) {
-            options = $.extend({}, options, { source: entitySource });
+            options = $.extend({ }, options, { source: entitySource });
         } else {
             // Until we can bindToEntitySource, fill in the DataContext-specific methods with some usable defaults.
-            $.each(upshot.EntityView.__dataContextMethodNames, function (index, name) {
+            $.each(upshot.EntityView.__dataContextMethodNames, function(index, name) {
                 if (name !== "getDataContext") {
-                    self[name] = function () {
+                    self[name] = function() {
                         throw "DataContext-specific methods are not available on RemoteDataSource a result type can be determined.  Consider supplying the \"entityType\" option when creating a RemoteDataSource or execute an initial query against your RemoteDatasource to determine the result type.";
                     };
                 }
             });
-            this.getDataContext = function () {
+            this.getDataContext = function() {
                 return this._dataContext;
             };
         }
@@ -3380,8 +3373,7 @@
     };
 
     var instanceMembers = {
-
-        setSort: function (sort) {
+        setSort: function(sort) {
             /// <summary>
             /// Establishes the sort specification that is to be applied as part of a server query when loading model data.
             /// </summary>
@@ -3397,7 +3389,7 @@
             return this;
         },
 
-        setFilter: function (filter) {
+        setFilter: function(filter) {
             /// <summary>
             /// Establishes the filter specification that is to be applied as part of a server query when loading model data.
             /// </summary>
@@ -3414,7 +3406,7 @@
 
         // TODO -- We should do a single setTimeout here instead, just in case N clients request a refresh
         // in response to callbacks.
-        refresh: function (options, success, error) {
+        refresh: function(options, success, error) {
             /// <summary>
             /// Initiates an asynchronous get to load model data matching the query established with setSort, setFilter and setPaging.
             /// </summary>
@@ -3438,14 +3430,14 @@
             this._trigger("refreshStart");
 
             var self = this,
-                onSuccess = function (entitySet, entities, totalCount) {
+                onSuccess = function(entitySet, entities, totalCount) {
                     self._bindToEntitySource(entitySet);
                     // TODO -- This means that we can't do CUD on this data source until we've refreshed it once.
                     // Allow client to pass the entityType, which would allow us to _not_ require a refresh to prime.
 
                     self._completeRefresh(entities, totalCount, success);
                 },
-                onError = function (httpStatus, errorText, context) {
+                onError = function(httpStatus, errorText, context) {
                     self._failRefresh(httpStatus, errorText, context, error);
                 };
 
@@ -3464,7 +3456,7 @@
             return this;
         },
 
-        commitChanges: function (success, error) {
+        commitChanges: function(success, error) {
             /// <summary>
             /// Initiates an asynchronous commit of any model data edits collected by the DataContext for this RemoteDataSource.
             /// </summary>
@@ -3485,11 +3477,10 @@
 
         // Private methods
 
-        _dispose: function () {
+        _dispose: function() {
             this._dataContext.unbind(this._dataContextObserver);
             base._dispose.apply(this, arguments);
         }
-
     };
 
     upshot.RemoteDataSource = upshot.deriveClass(base, ctor, instanceMembers);
@@ -3501,13 +3492,12 @@
 /// AssociatedEntitiesView.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var base = upshot.EntityView.prototype;
 
     var obs = upshot.observability;
 
-    var ctor = function (entity, parentEntitySet, childEntitySet, associationMetadata, parentPropertySetter, result) {
+    var ctor = function(entity, parentEntitySet, childEntitySet, associationMetadata, parentPropertySetter, result) {
         this._entity = entity;
         this._parentEntitySet = parentEntitySet;
         this._childEntitySet = childEntitySet;
@@ -3520,7 +3510,7 @@
         // - FK property changes that would affect a parent association property
         // - PK (non-FK) property changes that would affect a child association property
         var self = this;
-        this._sourceEntitySetObserver = function (entity, property, newValue) {
+        this._sourceEntitySetObserver = function(entity, property, newValue) {
             if (!self._needRecompute &&
                 $.inArray(property, associationMetadata.thisKey) >= 0) {
                 self._setNeedRecompute();
@@ -3539,30 +3529,29 @@
     };
 
     var instanceMembers = {
+    // Internal methods
 
-        // Internal methods
-
-        // This is called from EntitySet.js as it treats tracked changes to parent association
-        // properties on child entities.
-        __handleParentPropertySet: function (parentEntity) {
+    // This is called from EntitySet.js as it treats tracked changes to parent association
+    // properties on child entities.
+        __handleParentPropertySet: function(parentEntity) {
             this._handleRelationshipEdit(this._entity, parentEntity);
         },
 
         // Private methods
 
-        _dispose: function () {
+        _dispose: function() {
             var sourceEntitySet = this._associationMetadata.isForeignKey ? this._childEntitySet : this._parentEntitySet;
             sourceEntitySet.unbind("propertyChanged", this._sourceEntitySetObserver);
             base._dispose.apply(this, arguments);
         },
 
-        _handleEntityAdd: function (entity) {
+        _handleEntityAdd: function(entity) {
             this._handleRelationshipEdit(entity, this._entity);
         },
 
         // Do the appropriate EntitySet adds and FK property changes to reflect an editied relationship
         // between childEntity and parentEntity.
-        _handleRelationshipEdit: function (childEntity, parentEntity) {
+        _handleRelationshipEdit: function(childEntity, parentEntity) {
             var associationMetadata = this._associationMetadata,
                 isForeignKey = associationMetadata.isForeignKey,
                 parentKeyValue;
@@ -3578,14 +3567,14 @@
                 }
 
                 var parentKey = isForeignKey ? associationMetadata.otherKey : associationMetadata.thisKey;
-                parentKeyValue = obs.getProperty(parentEntity, parentKey[0]);  // TODO -- Generalize to N fields.
+                parentKeyValue = obs.getProperty(parentEntity, parentKey[0]); // TODO -- Generalize to N fields.
                 if (parentKeyValue === undefined) {
                     throw "Parent entity has no value for its '" + parentKey[0] + "' key property.";
                 }
             }
 
             var childKey = isForeignKey ? associationMetadata.thisKey : associationMetadata.otherKey,
-                childKeyValue = obs.getProperty(childEntity, childKey[0]),  // TODO -- Generalize to N fields.
+                childKeyValue = obs.getProperty(childEntity, childKey[0]), // TODO -- Generalize to N fields.
                 setForeignKeyValue;
             if (!parentEntity) {
                 if (childKeyValue !== null) {
@@ -3607,11 +3596,11 @@
                 // Likewise, above, we will have done obs.track (as part of adding to the EntitySet) before 
                 // obs.setProperty, in case establishing observable proxies is done implicitly w/in setProperty
                 // (as WinJS support does).
-                this._childEntitySet.__setProperty(childEntity, childKey[0], parentKeyValue);  // TODO -- Generalize to N fields.
+                this._childEntitySet.__setProperty(childEntity, childKey[0], parentKeyValue); // TODO -- Generalize to N fields.
             }
         },
 
-        _onPropertyChanged: function (entity, property, newValue) {
+        _onPropertyChanged: function(entity, property, newValue) {
             if (!this._needRecompute &&
                 $.inArray(property, this._associationMetadata.otherKey) >= 0) {
                 this._setNeedRecompute();
@@ -3619,30 +3608,28 @@
             base._onPropertyChanged.apply(this, arguments);
         },
 
-        _onArrayChanged: function (type, eventArgs) {
+        _onArrayChanged: function(type, eventArgs) {
             if (this._needRecompute) {
                 return;
             }
 
             var needRecompute;
             switch (type) {
-                case "insert":
-                case "remove":
-                    var self = this;
-                    $.each(eventArgs.items, function (index, entity) {
-                        if (self._haveEntity(entity) ^ type === "insert") {
-                            needRecompute = true;
-                            return false;
-                        }
-                    });
-                    break;
-
-                case "replaceAll":
-                    needRecompute = true;
-                    break;
-
-                default:
-                    throw "NYI -- Array operation '" + type + "' is not supported.";
+            case "insert":
+            case "remove":
+                var self = this;
+                $.each(eventArgs.items, function(index, entity) {
+                    if (self._haveEntity(entity) ^ type === "insert") {
+                        needRecompute = true;
+                        return false;
+                    }
+                });
+                break;
+            case "replaceAll":
+                needRecompute = true;
+                break;
+            default:
+                throw "NYI -- Array operation '" + type + "' is not supported.";
             }
 
             if (needRecompute) {
@@ -3650,15 +3637,15 @@
             }
         },
 
-        _recompute: function () {
+        _recompute: function() {
             var clientEntities = this._clientEntities,
                 newEntities = this._computeAssociatedEntities();
 
             if (!this._initialized) {
                 this._initialized = true;
 
-                if (newEntities.length > 0) {  // Don't event a replaceAll if we're not actually modifying the entities array.
-                    var oldEntities = obs.asArray(clientEntities).slice();  // Here, assume a live array.  It will be for jQuery compat.
+                if (newEntities.length > 0) { // Don't event a replaceAll if we're not actually modifying the entities array.
+                    var oldEntities = obs.asArray(clientEntities).slice(); // Here, assume a live array.  It will be for jQuery compat.
                     obs.refresh(clientEntities, newEntities);
                     this._trigger("arrayChanged", "replaceAll", { oldItems: oldEntities, newItems: obs.asArray(clientEntities) });
                 }
@@ -3670,20 +3657,20 @@
                 // Don't cache obs.asArray(clientEntities) below.
                 var self = this;
 
-                var addedEntities = $.grep(newEntities, function (entity) {
+                var addedEntities = $.grep(newEntities, function(entity) {
                     return $.inArray(entity, obs.asArray(clientEntities)) < 0;
                 });
-                $.each(addedEntities, function (unused, entity) {
+                $.each(addedEntities, function(unused, entity) {
                     var index = obs.asArray(clientEntities).length,
                         items = [entity];
                     obs.insert(clientEntities, index, items);
                     self._trigger("arrayChanged", "insert", { index: index, items: items });
                 });
 
-                var removedEntities = $.grep(obs.asArray(clientEntities), function (entity) {
+                var removedEntities = $.grep(obs.asArray(clientEntities), function(entity) {
                     return $.inArray(entity, newEntities) < 0;
                 });
-                $.each(removedEntities, function (unused, entity) {
+                $.each(removedEntities, function(unused, entity) {
                     var indexRemove = $.inArray(entity, obs.asArray(clientEntities));
                     obs.remove(clientEntities, indexRemove, 1);
                     self._trigger("arrayChanged", "remove", { index: indexRemove, items: [entity] });
@@ -3697,17 +3684,17 @@
             }
         },
 
-        _computeAssociatedEntities: function () {
+        _computeAssociatedEntities: function() {
             var entity = this._entity,
                 associationMetadata = this._associationMetadata,
-                sourceKeyValue = obs.getProperty(entity, associationMetadata.thisKey[0]),  // TODO -- Generalize to N fields.
+                sourceKeyValue = obs.getProperty(entity, associationMetadata.thisKey[0]), // TODO -- Generalize to N fields.
                 targetEntitySet = associationMetadata.isForeignKey ? this._parentEntitySet : this._childEntitySet,
                 targetEntities = obs.asArray(targetEntitySet.getEntities()),
                 targetKey = associationMetadata.otherKey,
                 associatedEntities = [];
             for (var i = 0; i < targetEntities.length; i++) {
                 var targetEntity = targetEntities[i],
-                    targetKeyValue = obs.getProperty(targetEntity, targetKey[0]);  // TODO -- Generalize to N fields.
+                    targetKeyValue = obs.getProperty(targetEntity, targetKey[0]); // TODO -- Generalize to N fields.
                 if (targetKeyValue !== undefined && targetKeyValue === sourceKeyValue) {
                     associatedEntities.push(targetEntity);
                 }
@@ -3715,7 +3702,7 @@
             return associatedEntities;
         }
 
-        // TODO -- Make array removals from "_clientEntities" null out foreign key values.
+    // TODO -- Make array removals from "_clientEntities" null out foreign key values.
     };
 
     upshot.AssociatedEntitiesView = upshot.deriveClass(base, ctor, instanceMembers);
@@ -3726,13 +3713,12 @@
 /// LocalDataSource.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
     var base = upshot.DataSource.prototype;
 
     var obs = upshot.observability;
 
-    var ctor = function (options) {
+    var ctor = function(options) {
         /// <summary>
         /// LocalDataSource is used to load model data matching a query that is evaluated in-memory.
         /// </summary>
@@ -3748,7 +3734,7 @@
         }
 
         var input = options && options.source;
-        if (input && !input.__recomputeDependentViews) {  // Test if "input" is an EntitySource.
+        if (input && !input.__recomputeDependentViews) { // Test if "input" is an EntitySource.
             var entitySource = obs.isArray(input) && upshot.EntitySource.as(input);
             if (!entitySource) {
                 throw "Input data for a LocalDataSource must be an EntitySource or the array returned by EntitySource.getEntities().";
@@ -3762,7 +3748,7 @@
             // observable CUD into Upshot "change" and "arrayChange" events.
         }
 
-        this._autoRefresh = options && options.autoRefresh;  // TODO -- Should we make "auto refresh" a feature of RemoteDataSource too?
+        this._autoRefresh = options && options.autoRefresh; // TODO -- Should we make "auto refresh" a feature of RemoteDataSource too?
 
         // Optional query options
         this._sort = null;
@@ -3779,9 +3765,8 @@
     };
 
     var instanceMembers = {
-
-        // override "sort" option setter
-        setSort: function (sort) {
+    // override "sort" option setter
+        setSort: function(sort) {
             /// <summary>
             /// Establishes the sort specification that is to be applied to the input data.
             /// </summary>
@@ -3799,7 +3784,7 @@
         },
 
         // override "filter" option setter
-        setFilter: function (filter) {
+        setFilter: function(filter) {
             /// <summary>
             /// Establishes the filter specification that is to be applied to the input data.
             /// </summary>
@@ -3814,7 +3799,7 @@
             this._filter = filter && this._createFilterFunction(filter);
         },
 
-        refresh: function (options, success, fail) {
+        refresh: function(options, success, fail) {
             /// <summary>
             /// Initiates an asynchronous reevaluation of the query established with setSort, setFilter and setPaging.
             /// </summary>
@@ -3838,23 +3823,23 @@
             this._trigger("refreshStart");
 
             var self = this,
-                sourceIsDataSource = this._entitySource.refresh;  // Only DataSources will have "refresh" (and not EntitySet and AssociatedEntitiesView).
+                sourceIsDataSource = this._entitySource.refresh; // Only DataSources will have "refresh" (and not EntitySet and AssociatedEntitiesView).
             if (options && !!options.all && sourceIsDataSource) {
                 // N.B.  "all" is a helper, in the sense that it saves a client from doing a serverDataSource.refresh and then,
                 // in response to serverDataSource.onRefresh, calling localDataSource.refresh.  Also, it allows the app to listen
                 // on refreshStart/refresh events from this LDS alone (and not the inner SDS as well).
                 this._refreshAllInProgress = true;
-                this._entitySource.refresh({ all: true }, function (entities) {
+                this._entitySource.refresh({ all: true }, function(entities) {
                     completeRefresh(entities);
                     self._refreshAllInProgress = false;
-                }, function (httpStatus, errorText, context) {
+                }, function(httpStatus, errorText, context) {
                     self._failRefresh(httpStatus, errorText, context, fail);
                 });
             } else {
                 // We do this refresh asynchronously so that, if this refresh was called during a callback,
                 // the app receives remaining callbacks first, before the new batch of callbacks with respect to this refresh.
                 // TODO -- We should only refresh once in response to N>1 "refresh" calls.
-                setTimeout(function () { completeRefresh(obs.asArray(self._entitySource.getEntities())); });
+                setTimeout(function() { completeRefresh(obs.asArray(self._entitySource.getEntities())); });
             }
 
             return this;
@@ -3864,10 +3849,12 @@
 
                 var results = self._applyQuery(entities);
                 self._completeRefresh(results.entities, results.totalCount, success);
-            };
+            }
+
+            ;
         },
 
-        refreshNeeded: function () {
+        refreshNeeded: function() {
             /// <summary>
             /// Indicates whether the input data has been modified in such a way that LocalDataSource.getEntities() would change on the next LocalDataSource.refresh() call.
             /// </summary>
@@ -3878,9 +3865,9 @@
 
         // Private methods
 
-        _setNeedRecompute: function () {
+        _setNeedRecompute: function() {
             ///#DEBUG
-            upshot.assert(!this._needRecompute);  // Callers should only determine dirtiness if we're not already dirty.
+            upshot.assert(!this._needRecompute); // Callers should only determine dirtiness if we're not already dirty.
             ///#ENDDEBUG
 
             if (this._autoRefresh) {
@@ -3896,9 +3883,9 @@
             }
         },
 
-        _recompute: function () {
+        _recompute: function() {
             ///#DEBUG
-            upshot.assert(this._autoRefresh);  // We should only get here if we scheduled a recompute, for auto-refresh.
+            upshot.assert(this._autoRefresh); // We should only get here if we scheduled a recompute, for auto-refresh.
             ///#ENDDEBUG
 
             this._trigger("refreshStart");
@@ -3911,12 +3898,12 @@
             this._trigger("refreshSuccess", obs.asArray(this._clientEntities), this._lastRefreshTotalEntityCount);
         },
 
-        _normalizePropertyValue: function (entity, property) {
+        _normalizePropertyValue: function(entity, property) {
             // TODO -- Should do this based on metadata and return default value of the correct scalar type.
             return obs.getProperty(entity, property) || "";
         },
 
-        _onPropertyChanged: function (entity, property, newValue) {
+        _onPropertyChanged: function(entity, property, newValue) {
             base._onPropertyChanged.apply(this, arguments);
 
             if (this._refreshAllInProgress) {
@@ -3942,7 +3929,7 @@
                     if ($.isFunction(this._sort)) {
                         needRecompute = true;
                     } else if (upshot.isArray(this._sort)) {
-                        needRecompute = $.grep(this._sort, function (sortPart) {
+                        needRecompute = $.grep(this._sort, function(sortPart) {
                             return sortPart.property === property;
                         }).length > 0;
                     } else {
@@ -3959,14 +3946,14 @@
         // support the following filter formats
         // function, [functions], filterPart, [filterParts]
         // return: function
-        _createFilterFunction: function (filter) {
+        _createFilterFunction: function(filter) {
             var self = this;
             if ($.isFunction(filter)) {
                 return filter;
             }
 
             var filters = this._normalizeFilters(filter);
-            var comparisonFunctions = []
+            var comparisonFunctions = [];
             for (var i = 0; i < filters.length; i++) {
                 var filterPart = filters[i];
                 if ($.isFunction(filterPart)) {
@@ -3976,7 +3963,7 @@
                     comparisonFunctions.push(func);
                 }
             }
-            return function (entity) {
+            return function(entity) {
                 for (var i = 0; i < comparisonFunctions.length; i++) {
                     if (!comparisonFunctions[i](entity)) {
                         return false;
@@ -3988,33 +3975,49 @@
             function createFunction(filterProperty, filterOperator, filterValue) {
                 var comparer;
                 switch (filterOperator) {
-                    case "<": comparer = function (propertyValue) { return propertyValue < filterValue; }; break;
-                    case "<=": comparer = function (propertyValue) { return propertyValue <= filterValue; }; break;
-                    case "==": comparer = function (propertyValue) { return propertyValue == filterValue; }; break;
-                    case "!=": comparer = function (propertyValue) { return propertyValue != filterValue; }; break;
-                    case ">=": comparer = function (propertyValue) { return propertyValue >= filterValue; }; break;
-                    case ">": comparer = function (propertyValue) { return propertyValue > filterValue; }; break;
-                    case "Contains":
-                        comparer = function (propertyValue) {
-                            if (typeof propertyValue === "string" && typeof filterValue === "string") {
-                                propertyValue = propertyValue.toLowerCase();
-                                filterValue = filterValue.toLowerCase();
-                            }
-                            return propertyValue.indexOf(filterValue) >= 0;
-                        };
-                        break;
-                    default: throw "Unrecognized filter operator.";
-                };
+                case "<":
+                    comparer = function(propertyValue) { return propertyValue < filterValue; };
+                    break;
+                case "<=":
+                    comparer = function(propertyValue) { return propertyValue <= filterValue; };
+                    break;
+                case "==":
+                    comparer = function(propertyValue) { return propertyValue == filterValue; };
+                    break;
+                case "!=":
+                    comparer = function(propertyValue) { return propertyValue != filterValue; };
+                    break;
+                case ">=":
+                    comparer = function(propertyValue) { return propertyValue >= filterValue; };
+                    break;
+                case ">":
+                    comparer = function(propertyValue) { return propertyValue > filterValue; };
+                    break;
+                case "Contains":
+                    comparer = function(propertyValue) {
+                        if (typeof propertyValue === "string" && typeof filterValue === "string") {
+                            propertyValue = propertyValue.toLowerCase();
+                            filterValue = filterValue.toLowerCase();
+                        }
+                        return propertyValue.indexOf(filterValue) >= 0;
+                    };
+                    break;
+                default:
+                    throw "Unrecognized filter operator.";
+                }
+                ;
 
-                return function (entity) {
+                return function(entity) {
                     // Can't trust added entities, for instance, to have all required property values.
                     var propertyValue = self._normalizePropertyValue(entity, filterProperty);
                     return comparer(propertyValue);
                 };
-            };
+            }
+
+            ;
         },
 
-        _getSortFunction: function () {
+        _getSortFunction: function() {
             var self = this;
             if (!this._sort) {
                 return null;
@@ -4022,17 +4025,17 @@
                 return this._sort;
             } else if (upshot.isArray(this._sort)) {
                 var sortFunction;
-                $.each(this._sort, function (unused, sortPart) {
+                $.each(this._sort, function(unused, sortPart) {
                     var sortPartFunction = getSortPartFunction(sortPart);
                     if (!sortFunction) {
                         sortFunction = sortPartFunction;
                     } else {
-                        sortFunction = function (sortPartFunction1, sortPartFunction2) {
-                            return function (entity1, entity2) {
+                        sortFunction = function(sortPartFunction1, sortPartFunction2) {
+                            return function(entity1, entity2) {
                                 var result = sortPartFunction1(entity1, entity2);
                                 return result === 0 ? sortPartFunction2(entity1, entity2) : result;
                             };
-                        } (sortFunction, sortPartFunction);
+                        }(sortFunction, sortPartFunction);
                     }
                 });
                 return sortFunction;
@@ -4041,7 +4044,7 @@
             }
 
             function getSortPartFunction(sortPart) {
-                return function (entity1, entity2) {
+                return function(entity1, entity2) {
                     var isAscending = !sortPart.descending,
                         propertyName = sortPart.property,
                         propertyValue1 = self._normalizePropertyValue(entity1, propertyName),
@@ -4057,12 +4060,12 @@
             }
         },
 
-        _applyQuery: function (entities) {
+        _applyQuery: function(entities) {
             var self = this;
 
             var filteredEntities;
             if (this._filter) {
-                filteredEntities = $.grep(entities, function (entity, index) {
+                filteredEntities = $.grep(entities, function(entity, index) {
                     return self._filter(entity);
                 });
             } else {
@@ -4070,7 +4073,7 @@
             }
 
             var sortFunction = this._getSortFunction(),
-            sortedEntities;
+                sortedEntities;
             if (sortFunction) {
                 sortedEntities = filteredEntities.sort(sortFunction);
             } else {
@@ -4086,7 +4089,7 @@
             return { entities: pagedEntities, totalCount: sortedEntities.length };
         },
 
-        _onArrayChanged: function (type, eventArguments) {
+        _onArrayChanged: function(type, eventArguments) {
             base._onArrayChanged.apply(this, arguments);
 
             if (this._refreshAllInProgress) {
@@ -4101,59 +4104,56 @@
                     needRecompute = false;
 
                 switch (type) {
-                    case "insert":
-                        var insertedEntities = eventArguments.items;
-                        if (insertedEntities.length > 0) {
-                            var anyExternallyInsertedEntitiesMatchFilter = $.grep(insertedEntities, function (entity) {
-                                return (!self._filter || self._filter(entity)) && $.inArray(entity, obs.asArray(self._clientEntities)) < 0;
-                            }).length > 0;
-                            if (anyExternallyInsertedEntitiesMatchFilter) {
-                                needRecompute = true;
-                            }
-                        }
-                        break;
-
-                    case "remove":
-                        if (this._take > 0 || this._skip > 0) {
-                            // If we have paging options, we have to conservatively assume that the result will be shy
-                            // of the _limit due to this delete or the result should be shifted due to a delete from
-                            // those entities preceding the _skip.
+                case "insert":
+                    var insertedEntities = eventArguments.items;
+                    if (insertedEntities.length > 0) {
+                        var anyExternallyInsertedEntitiesMatchFilter = $.grep(insertedEntities, function(entity) {
+                            return (!self._filter || self._filter(entity)) && $.inArray(entity, obs.asArray(self._clientEntities)) < 0;
+                        }).length > 0;
+                        if (anyExternallyInsertedEntitiesMatchFilter) {
                             needRecompute = true;
+                        }
+                    }
+                    break;
+                case "remove":
+                    if (this._take > 0 || this._skip > 0) {
+                        // If we have paging options, we have to conservatively assume that the result will be shy
+                        // of the _limit due to this delete or the result should be shifted due to a delete from
+                        // those entities preceding the _skip.
+                        needRecompute = true;
 
-                            // NOTE: This covers the case where an entity in our input reaches the upshot.EntityState.Deleted
-                            // state.  We assume that this will cause the entity to be removed from the input EntitySource.
+                        // NOTE: This covers the case where an entity in our input reaches the upshot.EntityState.Deleted
+                        // state.  We assume that this will cause the entity to be removed from the input EntitySource.
+                    } else {
+                        var nonDeletedResultEntitiesRemoved = $.grep(eventArguments.items, function(entity) {
+                            return self._haveEntity(entity) &&
+                                (self.getEntityState(entity) || upshot.EntityState.Deleted) !== upshot.EntityState.Deleted;
+                        });
+                        if (nonDeletedResultEntitiesRemoved.length > 0) {
+                            // If the input EntitySource happens to be an EntityView and entities leave that view
+                            // for some other reason than reaching the upshot.EntityState.Deleted state, we should
+                            // signal the need for a recompute to remove these entities from our results (but let
+                            // the client control this for the non-auto-refresh case).
+                            needRecompute = true;
+                        }
+                    }
+                    break;
+                case "replaceAll":
+                    if (!this._refreshAllInProgress) {
+                        // We don't want to event "need refresh" due to a "refresh all".
+                        // Rather, we want to issue "refresh completed".
+
+                        var results = this._applyQuery(eventArguments.newItems);
+                        if (this.totalCount !== results.totalCount) {
+                            needRecompute = true;
                         } else {
-                            var nonDeletedResultEntitiesRemoved = $.grep(eventArguments.items, function (entity) {
-                                return self._haveEntity(entity) &&
-                                    (self.getEntityState(entity) || upshot.EntityState.Deleted) !== upshot.EntityState.Deleted;
-                            });
-                            if (nonDeletedResultEntitiesRemoved.length > 0) {
-                                // If the input EntitySource happens to be an EntityView and entities leave that view
-                                // for some other reason than reaching the upshot.EntityState.Deleted state, we should
-                                // signal the need for a recompute to remove these entities from our results (but let
-                                // the client control this for the non-auto-refresh case).
-                                needRecompute = true;
-                            }
+                            // Reference comparison is enough here.  "property changed" catches deeper causes of "need refresh".
+                            needRecompute = !upshot.sameArrayContents(obs.asArray(this._clientEntities), results.entities);
                         }
-                        break;
-
-                    case "replaceAll":
-                        if (!this._refreshAllInProgress) {
-                            // We don't want to event "need refresh" due to a "refresh all".
-                            // Rather, we want to issue "refresh completed".
-
-                            var results = this._applyQuery(eventArguments.newItems);
-                            if (this.totalCount !== results.totalCount) {
-                                needRecompute = true;
-                            } else {
-                                // Reference comparison is enough here.  "property changed" catches deeper causes of "need refresh".
-                                needRecompute = !upshot.sameArrayContents(obs.asArray(this._clientEntities), results.entities);
-                            }
-                        }
-                        break;
-
-                    default:
-                        throw "Unknown array operation '" + type + "'.";
+                    }
+                    break;
+                default:
+                    throw "Unknown array operation '" + type + "'.";
                 }
 
                 if (needRecompute) {
@@ -4162,7 +4162,7 @@
             }
         },
 
-        _handleEntityAdd: function (entity) {
+        _handleEntityAdd: function(entity) {
             if (!this._needRecompute) {
                 if (this._filter && !this._filter(entity)) {
                     this._setNeedRecompute();
@@ -4171,7 +4171,7 @@
             base._handleEntityAdd.apply(this, arguments);
         },
 
-        _handleEntityDelete: function (entity) {
+        _handleEntityDelete: function(entity) {
             if (!this._needRecompute && this._take > 0) {
                 // If we have a _take, we have to conservatively assume that the result will be one entity shy of
                 // the take due to this delete.
@@ -4190,8 +4190,8 @@
 /// DataProvider.OData.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
+
     function pad(count, value) {
         var str = "0000" + value;
         return str.slice(str.length - count);
@@ -4200,11 +4200,11 @@
     function formatDateTime(date) {
         return "datetime" +
             "'" + pad(4, date.getUTCFullYear()) +
-            "-" + pad(2, date.getUTCMonth() + 1) +
-            "-" + pad(2, date.getUTCDate()) +
-            "T" + pad(2, date.getUTCHours()) +
-            ":" + pad(2, date.getUTCMinutes()) +
-            ":" + pad(2, date.getUTCSeconds()) + "'";
+                "-" + pad(2, date.getUTCMonth() + 1) +
+                    "-" + pad(2, date.getUTCDate()) +
+                        "T" + pad(2, date.getUTCHours()) +
+                            ":" + pad(2, date.getUTCMinutes()) +
+                                ":" + pad(2, date.getUTCSeconds()) + "'";
     }
 
     function getQueryResult(getResult) {
@@ -4213,7 +4213,7 @@
 
         var metadata;
         if (resultType) {
-            metadata = {};
+            metadata = { };
             metadata[resultType] = {
                 key: ["__metadata.uri"]
             };
@@ -4231,10 +4231,9 @@
     }
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
-
-        get: function (parameters, queryParameters, success, error) {
+        get: function(parameters, queryParameters, success, error) {
             /// <summary>
             /// Asynchronously gets data from the server using the specified parameters
             /// </summary>
@@ -4259,20 +4258,20 @@
 
             // $.map applied to objects is supported in jQuery >= 1.6. Our current baseline is jQuery 1.5
             var parameterStrings = [];
-            $.each($.extend({}, operationParameters, upshot.ODataDataProvider.getODataQueryParameters(queryParameters)), function (key, value) {
+            $.each($.extend({ }, operationParameters, upshot.ODataDataProvider.getODataQueryParameters(queryParameters)), function(key, value) {
                 parameterStrings.push(key.toString() + "=" + value.toString());
             });
             var queryString = parameterStrings.length ? ("?" + parameterStrings.join("&")) : "";
 
             // Invoke the query
             OData.read(upshot.DataProvider.normalizeUrl(parameters.url) + operation + queryString,
-                function (result) {
+                function(result) {
                     if (success) {
                         arguments[0] = getQueryResult(arguments[0]);
                         success.apply(self, arguments);
                     }
                 },
-                function (reason) {
+                function(reason) {
                     if (error) {
                         error.call(self, -1, reason.message, reason);
                     }
@@ -4280,45 +4279,55 @@
             );
         },
 
-        submit: function () {
+        submit: function() {
             throw "Saving edits through the OData data provider is not supported.";
         }
     };
 
     var classMembers = {
-        getODataQueryParameters: function (query) {
-            query = query || {};
-            var queryParameters = {};
+        getODataQueryParameters: function(query) {
+            query = query || { };
+            var queryParameters = { };
 
             // filters -> $filter
             if (query.filters && query.filters.length) {
                 var filterParameter = "",
-                applyOperator = function (property, operator, value) {
-                    if (typeof value === "string") {
-                        if (upshot.isGuid(value)) {
-                            value = "guid'" + value + "'";
-                        } else {
-                            value = "'" + value + "'";
+                    applyOperator = function(property, operator, value) {
+                        if (typeof value === "string") {
+                            if (upshot.isGuid(value)) {
+                                value = "guid'" + value + "'";
+                            } else {
+                                value = "'" + value + "'";
+                            }
+                        } else if (upshot.isDate(value)) {
+                            value = formatDateTime(value);
                         }
-                    } else if (upshot.isDate(value)) {
-                        value = formatDateTime(value);
-                    }
 
-                    switch (operator) {
-                        case "<": return property + " lt " + value;
-                        case "<=": return property + " le " + value;
-                        case "==": return property + " eq " + value;
-                        case "!=": return property + " ne " + value;
-                        case ">=": return property + " ge " + value;
-                        case ">": return property + " gt " + value;
-                        case "StartsWith": return "startswith(" + property + "," + value + ") eq true";
-                        case "EndsWith": return "endswith(" + property + "," + value + ") eq true";
-                        case "Contains": return "substringof(" + value + "," + property + ") eq true";
-                        default: throw "The operator '" + operator + "' is not supported.";
-                    }
-                };
+                        switch (operator) {
+                        case "<":
+                            return property + " lt " + value;
+                        case "<=":
+                            return property + " le " + value;
+                        case "==":
+                            return property + " eq " + value;
+                        case "!=":
+                            return property + " ne " + value;
+                        case ">=":
+                            return property + " ge " + value;
+                        case ">":
+                            return property + " gt " + value;
+                        case "StartsWith":
+                            return "startswith(" + property + "," + value + ") eq true";
+                        case "EndsWith":
+                            return "endswith(" + property + "," + value + ") eq true";
+                        case "Contains":
+                            return "substringof(" + value + "," + property + ") eq true";
+                        default:
+                            throw "The operator '" + operator + "' is not supported.";
+                        }
+                    };
 
-                $.each(query.filters, function (index, filter) {
+                $.each(query.filters, function(index, filter) {
                     if (filterParameter) {
                         filterParameter += " and ";
                     }
@@ -4330,10 +4339,10 @@
 
             // sort -> $orderby
             if (query.sort && query.sort.length) {
-                var formatSort = function (sort) {
+                var formatSort = function(sort) {
                     return !!sort.descending ? (sort.property + " desc") : sort.property;
                 };
-                queryParameters.$orderby = $.map(query.sort, function (sort, index) {
+                queryParameters.$orderby = $.map(query.sort, function(sort, index) {
                     return formatSort(sort);
                 }).join();
             }
@@ -4355,8 +4364,7 @@
 
             return queryParameters;
         }
-    }
-
+    };
     upshot.ODataDataProvider = upshot.defineClass(null, instanceMembers, classMembers);
 
 }
@@ -4366,15 +4374,15 @@
 /// DataProvider.ria.js
 ///
 
-(function (global, $, upshot, undefined)
-{
+(function(global, $, upshot, undefined) {
+
     function transformQuery(query) {
-        var queryParameters = {};
+        var queryParameters = { };
 
         // filters -> $where
         if (query.filters && query.filters.length) {
             var whereParameter = "",
-                applyOperator = function (property, operator, value) {
+                applyOperator = function(property, operator, value) {
                     if (typeof value === "string") {
                         if (upshot.isGuid(value)) {
                             value = "Guid(" + value + ")";
@@ -4387,20 +4395,23 @@
                     }
 
                     switch (operator) {
-                        case "<":
-                        case "<=":
-                        case "==":
-                        case "!=":
-                        case ">=":
-                        case ">": return property + operator + value;
-                        case "StartsWith":
-                        case "EndsWith":
-                        case "Contains": return property + "." + operator + "(" + value + ")";
-                        default: throw "The operator '" + operator + "' is not supported.";
+                    case "<":
+                    case "<=":
+                    case "==":
+                    case "!=":
+                    case ">=":
+                    case ">":
+                        return property + operator + value;
+                    case "StartsWith":
+                    case "EndsWith":
+                    case "Contains":
+                        return property + "." + operator + "(" + value + ")";
+                    default:
+                        throw "The operator '" + operator + "' is not supported.";
                     }
                 };
 
-            $.each(query.filters, function (index, filter) {
+            $.each(query.filters, function(index, filter) {
                 if (whereParameter) {
                     whereParameter += " AND ";
                 }
@@ -4412,10 +4423,10 @@
 
         // sort -> $orderby
         if (query.sort && query.sort.length) {
-            var formatSort = function (sort) {
+            var formatSort = function(sort) {
                 return !!sort.descending ? (sort.property + " desc") : sort.property;
             };
-            queryParameters.$orderby = $.map(query.sort, function (sort, index) {
+            queryParameters.$orderby = $.map(query.sort, function(sort, index) {
                 return formatSort(sort);
             }).join();
         }
@@ -4443,7 +4454,7 @@
         // before invoking the service, for example json serializing arrays
         // and other complex parameters.
         if (parameters) {
-            $.each(parameters || {}, function (key, value) {
+            $.each(parameters || { }, function(key, value) {
                 if ($.isArray(value)) {
                     // json serialize arrays since this is the format the json
                     // endpoint expects.
@@ -4457,17 +4468,17 @@
 
     function getQueryResult(getResult) {
         var resultKey;
-        $.each(getResult, function (key) {
-            if (/Result$/.test(key)) {
+        $.each(getResult, function(key) {
+            if ( /Result$/ .test(key)) {
                 resultKey = key;
                 return false;
             }
         });
         var result = getResult[resultKey];
-        
+
         // process the metadata
-        var metadata = {};
-        $.each(result.Metadata, function (unused, metadataForType) {
+        var metadata = { };
+        $.each(result.Metadata, function(unused, metadataForType) {
             metadata[metadataForType.type] = {
                 key: metadataForType.key,
                 fields: metadataForType.fields,
@@ -4479,8 +4490,8 @@
         var includedEntities;
         if (result.IncludedResults) {
             // group included entities by type
-            includedEntities = {};
-            $.each(result.IncludedResults, function (unused, entity) {
+            includedEntities = { };
+            $.each(result.IncludedResults, function(unused, entity) {
                 var entityType = entity.__type;
                 var entities = includedEntities[entityType] || (includedEntities[entityType] = []);
                 entities.push(entity);
@@ -4497,10 +4508,9 @@
     }
 
     var instanceMembers = {
+    // Public methods
 
-        // Public methods
-
-        get: function (parameters, queryParameters, success, error) {
+        get: function(parameters, queryParameters, success, error) {
             /// <summary>
             /// Asynchronously gets data from the server using the specified parameters
             /// </summary>
@@ -4526,19 +4536,19 @@
             // Invoke the query
             $.ajax({
                 url: upshot.DataProvider.normalizeUrl(parameters.url) + "json/" + operation,
-                data: $.extend({}, transformParameters(operationParameters), transformQuery(queryParameters || {})),
-                success: success && function () {
+                data: $.extend({ }, transformParameters(operationParameters), transformQuery(queryParameters || { })),
+                success: success && function() {
                     arguments[0] = getQueryResult(arguments[0]);
                     success.apply(self, arguments);
                 },
-                error: error && function (jqXHR, statusText, errorText) {
+                error: error && function(jqXHR, statusText, errorText) {
                     error.call(self, jqXHR.status, self._parseErrorText(jqXHR.responseText) || errorText, jqXHR);
                 },
                 dataType: "json"
             });
         },
 
-        submit: function (parameters, changeSet, success, error) {
+        submit: function(parameters, changeSet, success, error) {
             /// <summary>
             /// Asynchronously submits the specified changeset
             /// </summary>
@@ -4557,17 +4567,17 @@
                 data: encodedChangeSet,
                 dataType: "json",
                 type: "POST",
-                success: (success || error) && function (data, statusText, jqXHR) {
+                success: (success || error) && function(data, statusText, jqXHR) {
                     var result = data["SubmitChangesResult"];
                     var hasErrors = false;
                     if (result) {
                         // transform to Error property
-                        $.each(result, function (index, changeSetEntry) {
+                        $.each(result, function(index, changeSetEntry) {
                             // even though upshot currently doesn't support reporting of concurrency conflicts,
                             // we must still identify such failures
-                            $.each(["ConflictMembers", "ValidationErrors", "IsDeleteConflict"], function (index, property) {
+                            $.each(["ConflictMembers", "ValidationErrors", "IsDeleteConflict"], function(index, property) {
                                 if (changeSetEntry.hasOwnProperty(property)) {
-                                    changeSetEntry.Error = changeSetEntry.Error || {};
+                                    changeSetEntry.Error = changeSetEntry.Error || { };
                                     changeSetEntry.Error[property] = changeSetEntry[property];
                                     hasErrors = true;
                                 }
@@ -4593,26 +4603,25 @@
                         error.call(self, jqXHR.status, errorText, jqXHR, result);
                     }
                 },
-                error: error && function (jqXHR, statusText, errorText) {
+                error: error && function(jqXHR, statusText, errorText) {
                     error.call(self, jqXHR.status, self._parseErrorText(jqXHR.responseText) || errorText, jqXHR);
                 }
             });
         },
 
-        _parseErrorText: function (responseText) {
-            var match = /Exception]: (.+)\r/g.exec(responseText);
+        _parseErrorText: function(responseText) {
+            var match = /Exception]: (.+)\r/g .exec(responseText);
             if (match && match[1]) {
                 return match[1];
             }
-            if (/^{.*}$/g.test(responseText)) {
+            if ( /^{.*}$/g .test(responseText)) {
                 var error = JSON.parse(responseText);
                 if (error.ErrorMessage) {
                     return error.ErrorMessage;
                 }
             }
         }
-    }
-
+    };
     upshot.riaDataProvider = upshot.defineClass(null, instanceMembers);
 }
 )(this, jQuery, upshot);

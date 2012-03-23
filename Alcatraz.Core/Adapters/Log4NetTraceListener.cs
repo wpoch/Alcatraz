@@ -3,9 +3,9 @@ using log4net;
 
 namespace Alcatraz.Core.Adapters
 {
-    public class Log4NetTraceListener : TextWriterTraceListener 
+    public class Log4NetTraceListener : TextWriterTraceListener
     {
-        public ILog Log = LogManager.GetLogger(typeof(Log4NetTraceListener));
+        public ILog Log = LogManager.GetLogger(typeof (Log4NetTraceListener));
 
         public override void Write(string message)
         {

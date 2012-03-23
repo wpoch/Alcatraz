@@ -7,12 +7,11 @@ namespace Alcatraz.Core.Receivers
     [Serializable]
     public abstract class BaseReceiver : MarshalByRefObject, IReceiver
     {
-        [NonSerialized]
-        private string _displayName;
-
-        public abstract Action<LogMessage> OnLogMessageReceived { get; set; }
+        [NonSerialized] private string _displayName;
 
         #region IReceiver Members
+
+        public abstract Action<LogMessage> OnLogMessageReceived { get; set; }
 
         public abstract string SampleClientConfig { get; }
 

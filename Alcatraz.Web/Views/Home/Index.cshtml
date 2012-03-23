@@ -3,7 +3,7 @@
 }
 
 @section head {
-    <script src="http://localhost:8081/signalr/hubs" type="text/javascript"></script>    
+    <script src="http://localhost:8081/signalr/hubs" type="text/javascript"> </script>    
 }
 
 @section featured {
@@ -26,7 +26,7 @@
 </ul>
 
 <script type="text/javascript">
-    $(function () {
+    $(function() {
         var logHub = $.connection.logHub;
 
         function addMessage(msg) {
@@ -35,8 +35,8 @@
 
         logHub.received = addMessage;
 
-        $.connection.hub.start({ transport: 'negotiate' }, function () {
-            logHub.getLogs(function (data) {
+        $.connection.hub.start({ transport: 'negotiate' }, function() {
+            logHub.getLogs(function(data) {
                 for (var i = data.length - 1; i >= 0; i--) {
                     addMessage(data[i]);
                 }

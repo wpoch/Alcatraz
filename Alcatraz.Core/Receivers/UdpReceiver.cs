@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using Alcatraz.Core.Log;
 using log4net;
@@ -13,17 +14,13 @@ namespace Alcatraz.Core.Receivers
     public class UdpReceiver : BaseReceiver
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof (UdpReceiver));
-
-        [NonSerialized]
-        private Thread _worker;
-        [NonSerialized]
-        private UdpClient _udpClient;
-        [NonSerialized]
-        private IPEndPoint _remoteEndPoint;
+        private string _address = String.Empty;
 
         private bool _ipv6;
         private int _port = 7071;
-        private string _address = String.Empty;
+        [NonSerialized] private IPEndPoint _remoteEndPoint;
+        [NonSerialized] private UdpClient _udpClient;
+        [NonSerialized] private Thread _worker;
 
 
         [Category("Configuration")]
@@ -52,9 +49,6 @@ namespace Alcatraz.Core.Receivers
             set { _address = value; }
         }
 
-
-        #region IReceiver Members
-
         [Browsable(false)]
         public override string SampleClientConfig
         {
@@ -69,6 +63,8 @@ namespace Alcatraz.Core.Receivers
                     "</appender>";
             }
         }
+
+        public override Action<LogMessage> OnLogMessageReceived { get; set; }
 
         public override void Initialize()
         {
@@ -103,10 +99,6 @@ namespace Alcatraz.Core.Receivers
             _worker = null;
         }
 
-        public override Action<LogMessage> OnLogMessageReceived { get; set; }
-        #endregion
-
-
         private void Start()
         {
             while ((_udpClient != null) && (_remoteEndPoint != null))
@@ -114,25 +106,24 @@ namespace Alcatraz.Core.Receivers
                 try
                 {
                     byte[] buffer = _udpClient.Receive(ref _remoteEndPoint);
-                    string loggingEvent = System.Text.Encoding.UTF8.GetString(buffer);
+                    string loggingEvent = Encoding.UTF8.GetString(buffer);
 
-                    if(Log.IsDebugEnabled) Log.Debug(loggingEvent);
+                    if (Log.IsDebugEnabled) Log.Debug(loggingEvent);
 
                     if (OnLogMessageReceived == null)
                         continue;
 
-                    var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "UdpLogger");
+                    LogMessage logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "UdpLogger");
 
                     OnLogMessageReceived.BeginInvoke(logMsg, ar => (ar.AsyncState as Action<LogMessage>).EndInvoke(ar),
                                                      OnLogMessageReceived);
                 }
                 catch (Exception ex)
                 {
-                    if(Log.IsFatalEnabled) Log.Fatal(ex);
+                    if (Log.IsFatalEnabled) Log.Fatal(ex);
                     return;
                 }
             }
         }
-
     }
 }

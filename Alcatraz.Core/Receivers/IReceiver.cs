@@ -7,10 +7,9 @@ namespace Alcatraz.Core.Receivers
     {
         string SampleClientConfig { get; }
         string DisplayName { get; }
+        Action<LogMessage> OnLogMessageReceived { get; set; }
 
         void Initialize();
         void Terminate();
-
-        Action<LogMessage> OnLogMessageReceived { get; set; }
     }
 }

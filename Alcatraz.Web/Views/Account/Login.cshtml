@@ -9,10 +9,11 @@
     <h2>Enter your user name and password below.</h2>
 </hgroup>
 
-<script src="~/Scripts/jquery.validate.min.js"></script>
-<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"> </script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"> </script>
 
-@using (Html.BeginForm((string)ViewBag.FormAction, "Account")) {
+@using (Html.BeginForm((string) ViewBag.FormAction, "Account"))
+{
     @Html.ValidationSummary(true, "Log in was unsuccessful. Please correct the errors and try again.")
 
     <fieldset>
@@ -30,7 +31,7 @@
             </li>
             <li>
                 @Html.CheckBoxFor(m => m.RememberMe)
-                @Html.LabelFor(m => m.RememberMe, new { @class = "checkbox" })
+                @Html.LabelFor(m => m.RememberMe, new {@class = "checkbox"})
             </li>
         </ol>
         <input type="submit" value="Log in" />

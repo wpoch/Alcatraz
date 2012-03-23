@@ -5,19 +5,20 @@ using log4net.Config;
 
 namespace Alcatraz.Service
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             XmlConfigurator.ConfigureAndWatch(new FileInfo("log4net.config"));
 
-            using(var server = new LogServer())
+            using (var server = new LogServer())
             {
                 server.Run();
-                
+
                 Console.WriteLine("Presione una tecla para salir.");
                 Console.ReadLine();
-            };
+            }
+            ;
         }
     }
 }

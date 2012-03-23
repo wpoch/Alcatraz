@@ -15,19 +15,18 @@
 /// Compat.Knockout.js
 ///
 
-(function (global, ko, upshot, undefined)
-{
+(function(global, ko, upshot, undefined) {
     var cacheKey = "koConfig",
         stateProperty = "EntityState",
         errorProperty = "EntityError",
         updatedProperty = "IsUpdated",
         canSaveProperty = "CanSave",
         validationErrorProperty = "ValidationError";
-    
-    var splice = function (array, start, howmany, items) {
+
+    var splice = function(array, start, howmany, items) {
         array.splice.apply(array, items ? [start, howmany].concat(items) : [start, howmany]);
     };
-    var copy = function (value) {
+    var copy = function(value) {
         var copy = upshot.isArray(value) ? value.slice(0) : value;
         if (value && (value[upshot.cacheName] !== undefined)) {
             // Handles in-place array edits
@@ -35,7 +34,7 @@
         }
         return copy;
     };
-    var executeAndIgnoreChanges = function (observable, fn) {
+    var executeAndIgnoreChanges = function(observable, fn) {
         var tracker = upshot.cache(observable, cacheKey);
         try {
             tracker && (tracker.skip = true);
@@ -43,17 +42,16 @@
         } finally {
             tracker && (tracker.skip = false);
         }
-    }
-    var punchKoMinified = function (obj, fn, _new) {
+    };
+    var punchKoMinified = function(obj, fn, _new) {
         // replaces all instance of a function with the new version
         for (var prop in obj) {
             if (obj[prop] === fn) {
                 obj[prop] = _new;
             }
         }
-    }
+    }; // Observability configuration
 
-    // Observability configuration
     function track(data, options, entityType) {
         if (!options) {
             if (upshot.isObject(data)) {
@@ -77,21 +75,21 @@
     }
 
     function trackObject(data, options, entityType) {
-        ko.utils.arrayForEach(upshot.metadata.getProperties(data, entityType, !!options.includeAssociations), function (property) {
+        ko.utils.arrayForEach(upshot.metadata.getProperties(data, entityType, !!options.includeAssociations), function(property) {
             var observable = data[property.name];
             if (ko.isObservable(observable)) {
-                var tracker = function () {
+                var tracker = function() {
                     var self = this,
                         oldValue = null,
-                        createArgs = function (old, _new) {
-                            var oldValues = {},
-                                newValues = {};
+                        createArgs = function(old, _new) {
+                            var oldValues = { },
+                                newValues = { };
                             oldValues[property.name] = old;
                             newValues[property.name] = _new;
                             return { oldValues: oldValues, newValues: newValues };
                         },
                         realNotifySubscribers = observable.notifySubscribers,
-                        notifySubscribers = function (valueToNotify, event) {
+                        notifySubscribers = function(valueToNotify, event) {
                             var before = (event === "beforeChange"),
                                 after = (event === undefined || event === "change");
 
@@ -116,7 +114,7 @@
                         };
 
                     this.skip = false;
-                    this.dispose = function () {
+                    this.dispose = function() {
                         punchKoMinified(observable, notifySubscribers, realNotifySubscribers);
                     };
 
@@ -129,31 +127,31 @@
 
     function trackArray(data, options) {
         // Creates a tracker to raise before/after callbacks for the array
-        var tracker = function (observable) {
+        var tracker = function(observable) {
             var self = this,
                 oldValue = null,
                 eventArgs = null,
-                createArgs = function (old, _new) {
+                createArgs = function(old, _new) {
                     var args = null,
                         edits = ko.utils.compareArrays(old, _new);
                     for (var i = 0, length = edits.length; i < length; i++) {
                         var type = null;
                         switch (edits[i].status) {
-                            case "added":
-                                type = "insert";
-                                break;
-                            case "deleted":
-                                type = "remove";
-                                break;
-                            default:
-                                continue;
+                        case "added":
+                            type = "insert";
+                            break;
+                        case "deleted":
+                            type = "remove";
+                            break;
+                        default:
+                            continue;
                         }
                         if (type !== null) {
                             if (args === null) {
-                                args = { type: type, args: { index: i, items: [edits[i].value]} };
+                                args = { type: type, args: { index: i, items: [edits[i].value] } };
                             } else {
                                 // We'll aggregate two separate edits into a single event
-                                args = { type: "replaceAll", args: { newItems: _new, oldItems: old} };
+                                args = { type: "replaceAll", args: { newItems: _new, oldItems: old } };
                                 break;
                             }
                         }
@@ -161,7 +159,7 @@
                     return eventArgs = args;
                 },
                 realNotifySubscribers = observable.notifySubscribers,
-                notifySubscribers = function (valueToNotify, event) {
+                notifySubscribers = function(valueToNotify, event) {
                     var before = (event === "beforeChange"),
                         after = (event === undefined || event === "change");
 
@@ -186,7 +184,7 @@
                 };
 
             this.skip = false;
-            this.dispose = function () {
+            this.dispose = function() {
                 punchKoMinified(observable, notifySubscribers, realNotifySubscribers);
             };
 
@@ -196,19 +194,19 @@
     }
 
     function insert(array, index, items) {
-        executeAndIgnoreChanges(array, function () {
+        executeAndIgnoreChanges(array, function() {
             splice(array, index, 0, items);
         });
     }
 
     function remove(array, index, numToRemove) {
-        executeAndIgnoreChanges(array, function () {
+        executeAndIgnoreChanges(array, function() {
             splice(array, index, numToRemove);
         });
     }
 
     function refresh(array, newItems) {
-        executeAndIgnoreChanges(array, function () {
+        executeAndIgnoreChanges(array, function() {
             splice(array, 0, array().length, newItems);
         });
     }
@@ -230,7 +228,7 @@
     }
 
     function setProperty(item, name, value) {
-        executeAndIgnoreChanges(item[name], function () {
+        executeAndIgnoreChanges(item[name], function() {
             ko.isObservable(item[name]) ? item[name](value) : item[name] = value;
         });
     }
@@ -250,21 +248,21 @@
     function map(item, entityType, mapNested, context) {
         if (upshot.isArray(item)) {
             var array;
-            if(item.length === 0 || !(upshot.isArray(item[0]) || upshot.isObject(item[0]))) {
+            if (item.length === 0 || !(upshot.isArray(item[0]) || upshot.isObject(item[0]))) {
                 // Primitive values don't get mapped.  Avoid iteration over the potentially large array.
                 // TODO: This precludes heterogeneous arrays.  Should we test for primitive element type here instead?
                 array = item;
             } else {
-                array = ko.utils.arrayMap(item, function (value) {
+                array = ko.utils.arrayMap(item, function(value) {
                     return (mapNested || map)(value, entityType);
                 });
             }
             return ko.observableArray(array);
         } else if (upshot.isObject(item)) {
-            var obj = context || {};
+            var obj = context || { };
             // Often, server entities will not carry null-valued nullable-type properties.
             // Use getProperties here so that we'll map missing property value like these to observables.
-            ko.utils.arrayForEach(upshot.metadata.getProperties(item, entityType, true), function (prop) {
+            ko.utils.arrayForEach(upshot.metadata.getProperties(item, entityType, true), function(prop) {
                 var value = (mapNested || map)(item[prop.name], prop.type);
                 obj[prop.name] = ko.isObservable(value) ? value : ko.observable(value);
             });
@@ -276,16 +274,16 @@
     function unmap(item, entityType) {
         item = ko.utils.unwrapObservable(item);
         if (upshot.isArray(item)) {
-            var array = ko.utils.arrayMap(item, function (value) {
+            var array = ko.utils.arrayMap(item, function(value) {
                 return unmap(value);
             });
             return array;
         } else if (upshot.isObject(item)) {
-            var obj = {};
+            var obj = { };
             if (item.hasOwnProperty("__type")) { // make sure __type flows through first
                 obj["__type"] = ko.utils.unwrapObservable(item["__type"]);
             }
-            ko.utils.arrayForEach(upshot.metadata.getProperties(item, entityType), function (prop) {
+            ko.utils.arrayForEach(upshot.metadata.getProperties(item, entityType), function(prop) {
                 // TODO: determine if there are scenarios where we want to support hasOwnProperty returning false
                 if (item.hasOwnProperty(prop.name)) {
                     obj[prop.name] = unmap(item[prop.name], prop.type);
@@ -328,13 +326,14 @@
     observability.configuration = observability.knockout;
 
     // KO entity extensions
+
     function addValidationErrorProperty(entity, prop) {
         var observable = entity[prop];
-        if (observable) {  // Custom mappings might not include this property.
-            observable[validationErrorProperty] = ko.computed(function () {
+        if (observable) { // Custom mappings might not include this property.
+            observable[validationErrorProperty] = ko.computed(function() {
                 var allErrors = entity[errorProperty]();
                 if (allErrors && allErrors.ValidationErrors) {
-                    var matchingError = ko.utils.arrayFirst(allErrors.ValidationErrors, function (error) {
+                    var matchingError = ko.utils.arrayFirst(allErrors.ValidationErrors, function(error) {
                         return ko.utils.arrayIndexOf(error.SourceMemberNames, prop) >= 0;
                     });
                     if (matchingError) {
@@ -346,24 +345,24 @@
         }
     }
 
-    upshot.addEntityProperties = function (entity, entityType) {
+    upshot.addEntityProperties = function(entity, entityType) {
         // Adds properties to an entity that will be managed by upshot
         entity[stateProperty] = ko.observable(upshot.EntityState.Unmodified);
         entity[errorProperty] = ko.observable();
 
         // Minimize view boilerplate by exposing convenient status properties
-        entity[updatedProperty] = ko.computed(function () {
-            return entity[stateProperty]() === upshot.EntityState.ClientUpdated
+        entity[updatedProperty] = ko.computed(function() {
+            return entity[stateProperty]() === upshot.EntityState.ClientUpdated;
         });
-        entity[canSaveProperty] = ko.computed(function () {
+        entity[canSaveProperty] = ko.computed(function() {
             return entity.IsUpdated()
                 || entity[stateProperty]() === upshot.EntityState.ClientAdded;
         });
 
         // Adds properties to each tracked observable that will be managed by upshot
-        ko.utils.arrayForEach(upshot.metadata.getProperties(entity, entityType, true), function (prop) {
+        ko.utils.arrayForEach(upshot.metadata.getProperties(entity, entityType, true), function(prop) {
             addValidationErrorProperty(entity, prop.name);
         });
-    }
+    };
 }
 )(this, ko, upshot);
