@@ -21,3 +21,4 @@ PublishProfiles/
 *.psess
 *.vsp
 *.csv
+/Alcatraz.Web/Scripts/appMappings.js
