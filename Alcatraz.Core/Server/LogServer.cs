@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using Alcatraz.Core.Hubs;
 using Alcatraz.Core.Log;
 using Alcatraz.Core.Receivers;
-using Raven.Client;
+using Alcatraz.Core.Settings;
 using Raven.Client.Embedded;
 using SignalR;
 using SignalR.Hubs;
@@ -13,7 +12,16 @@ namespace Alcatraz.Core.Server
 {
     public class LogServer : IDisposable
     {
+        private readonly ILog _log = LogManager.GetLogger(typeof(LogServer));
         public static EmbeddableDocumentStore DocumentStore;
+        private dynamic _clients;
+        private RemoteOriginServer _server;
+        private readonly ApplicationSettings _settings;
+
+        public LogServer(ApplicationSettings settings)
+        {
+            _settings = settings;
+        }
 
         #region Initialization
 
@@ -35,7 +43,7 @@ namespace Alcatraz.Core.Server
                                     DataDirectory = "Data",
                                     UseEmbeddedHttpServer = true,
                                 };
-            DocumentStore.Configuration.Port = 8099;
+            DocumentStore.Configuration.Port = _settings.DatabasePort;
             DocumentStore.Initialize();
 
             if (_log.IsDebugEnabled) _log.Debug("... RavenDB initialized!");
@@ -45,18 +53,16 @@ namespace Alcatraz.Core.Server
         {
             if (_log.IsDebugEnabled) _log.Debug("Init SignalR...");
 
-            const string url = "http://localhost:8081/";
-
-            _server = new RemoteOriginServer(url);
-            _server.DependencyResolver.Register(typeof (IJavaScriptProxyGenerator),
-                                                () => new JsProxyGenerator(_server.DependencyResolver, url));
+            _server = new RemoteOriginServer(_settings.BroadcastUrl);
+            _server.DependencyResolver.Register(typeof(IJavaScriptProxyGenerator),
+                                                () => new JsProxyGenerator(_server.DependencyResolver, _settings.BroadcastUrl));
 
             // Enable the hubs route (/signalr)
             _server.EnableHubs();
             _server.Start();
 
             var connectionManager =
-                _server.DependencyResolver.GetService(typeof (IConnectionManager)) as IConnectionManager;
+                _server.DependencyResolver.GetService(typeof(IConnectionManager)) as IConnectionManager;
             _clients = connectionManager.GetClients<LogHub>();
 
             if (_log.IsDebugEnabled) _log.Debug("...SignalR initialized!");
@@ -65,18 +71,17 @@ namespace Alcatraz.Core.Server
         private void InitReceivers()
         {
             if (_log.IsDebugEnabled) _log.Debug("Init UDP Receivers...");
-
-            var receiver = new UdpReceiver {Port = 44444, OnLogMessageReceived = AddLogMessage};
-            receiver.Initialize();
+            
+            foreach (var listeningPort in _settings.UdpPorts)
+            {
+                var receiver = new UdpReceiver { Port = listeningPort, OnLogMessageReceived = AddLogMessage };
+                receiver.Initialize();                
+            }
 
             if (_log.IsDebugEnabled) _log.Debug("... UDP Receivers initialized!");
         }
 
         #endregion
-
-        private readonly ILog _log = LogManager.GetLogger(typeof (LogServer));
-        private dynamic _clients;
-        private RemoteOriginServer _server;
 
         #region IDisposable Members
 
@@ -93,7 +98,7 @@ namespace Alcatraz.Core.Server
             if (_log.IsDebugEnabled) _log.Debug(logMsg);
 
             //Store the log
-            using (IDocumentSession session = DocumentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 session.Store(logMsg);
                 session.SaveChanges();

@@ -72,6 +72,7 @@
     <Compile Include="Receivers\UdpReceiver.cs" />
     <Compile Include="Server\LogServer.cs" />
     <Compile Include="Server\RemoteOriginServer.cs" />
+    <Compile Include="Settings\ApplicationSettings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

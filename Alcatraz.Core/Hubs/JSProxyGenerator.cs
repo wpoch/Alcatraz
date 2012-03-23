@@ -19,7 +19,7 @@ namespace Alcatraz.Core.Hubs
         private static readonly ConcurrentDictionary<string, string> _scriptCache =
             new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly string _fullUrl;
+        private readonly Uri _fullUrl;
 
         private readonly IHubLocator _hubLocator;
         private readonly IJavaScriptMinifier _javascriptMinifier;
@@ -30,7 +30,7 @@ namespace Alcatraz.Core.Hubs
         {
         }
 
-        public JsProxyGenerator(IDependencyResolver resolver, string fullUrl) :
+        public JsProxyGenerator(IDependencyResolver resolver, Uri fullUrl) :
             this(resolver.Resolve<IHubLocator>(),
                  resolver.Resolve<IJavaScriptMinifier>())
         {
@@ -57,9 +57,9 @@ namespace Alcatraz.Core.Hubs
 
             string template = _template.Value;
 
-            script = template.Replace("{serviceUrl}", string.IsNullOrWhiteSpace(_fullUrl)
+            script = template.Replace("{serviceUrl}", string.IsNullOrWhiteSpace(_fullUrl.ToString())
                                                           ? serviceUrl
-                                                          : new Uri(new Uri(_fullUrl), serviceUrl).ToString());
+                                                          : new Uri(_fullUrl, serviceUrl).ToString());
 
             var hubs = new StringBuilder();
             bool first = true;

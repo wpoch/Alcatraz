@@ -17,19 +17,19 @@ namespace Alcatraz.Core.Server
     {
         private readonly Dictionary<string, Type> _connectionMapping = new Dictionary<string, Type>();
         private readonly HttpListener _listener;
-        private readonly string _url;
+        private readonly Uri _url;
         private bool _hubsEnabled;
 
-        public RemoteOriginServer(string url)
+        public RemoteOriginServer(Uri url)
             : this(url, new DefaultDependencyResolver())
         {
         }
 
-        public RemoteOriginServer(string url, IDependencyResolver resolver)
+        public RemoteOriginServer(Uri url, IDependencyResolver resolver)
         {
             _url = url;
             _listener = new HttpListener();
-            _listener.Prefixes.Add(url);
+            _listener.Prefixes.Add(url.ToString());
             DependencyResolver = resolver;
         }
 
@@ -178,12 +178,12 @@ namespace Alcatraz.Core.Server
             string baseUrl = url.GetComponents(UriComponents.Scheme | UriComponents.HostAndPort | UriComponents.Path,
                                                UriFormat.SafeUnescaped);
 
-            if (!baseUrl.StartsWith(_url, StringComparison.OrdinalIgnoreCase))
+            if (!baseUrl.StartsWith(_url.ToString(), StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Unable to resolve path");
             }
 
-            string path = baseUrl.Substring(_url.Length);
+            string path = baseUrl.Substring(_url.ToString().Length);
             if (!path.StartsWith("/"))
             {
                 return "/" + path;
